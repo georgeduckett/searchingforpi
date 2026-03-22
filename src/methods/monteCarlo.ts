@@ -120,7 +120,7 @@ export function createMonteCarloPage(): Page {
       btnStart.disabled = false
       return
     }
-    addDots(DOTS_PER_TICK)
+    addDots(Math.min(DOTS_PER_TICK, MAX_DOTS - state.total))
     updateStats()
     state.rafId = requestAnimationFrame(tick)
   }
