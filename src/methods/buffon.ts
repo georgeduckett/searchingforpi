@@ -236,17 +236,6 @@ export function createBuffonPage(): Page {
             <div class="stat-value" id="bf-crosses">0</div>
           </div>
 
-          <div class="legend">
-            <div class="legend-item">
-              <div class="legend-dot" style="background:${C_CROSS}"></div>
-              Crosses a line
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot" style="background:${C_NO_CROSS}"></div>
-              Does not cross
-            </div>
-          </div>
-
           <div class="explanation">
             <h3>How it works</h3>
             <p>
@@ -292,7 +281,7 @@ export function createBuffonPage(): Page {
     })
 
     btnStep.addEventListener('click', () => {
-      if (!state.running && state.total < MAX_NEEDLES) {
+      if (!state.running) {
         dropNeedle()
         updateStats()
         btnReset.disabled = false

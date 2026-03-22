@@ -300,9 +300,9 @@ export function createLeibnizPage(): Page {
       if (!state.running) start()
     })
     btnStep.addEventListener('click', () => {
-      if (!state.running && state.termIndex < MAX_TERMS) {
+      if (!state.running) {
         const steps = state.termIndex === 0 ? 2 : 1
-        for (let i = 0; i < steps && state.termIndex < MAX_TERMS; i++) {
+        for (let i = 0; i < steps; i++) {
           addTerm()
         }
         btnReset.disabled = false
