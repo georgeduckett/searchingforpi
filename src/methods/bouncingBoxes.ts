@@ -5,9 +5,9 @@ const CANVAS_W = 560
 const CANVAS_H = 320
 const BOX_SIZE = 20
 const WALL_X = 50
-const INITIAL_X1 = 200
-const INITIAL_X2 = 400
-const V0 = 2
+const INITIAL_X1 = WALL_X + 20
+const INITIAL_X2 = INITIAL_X1 + 80
+const V0 = 10
 const M1 = 1
 
 // ─── Colours ─────────────────────────────────────────────────────────────────
@@ -81,11 +81,15 @@ export function createBouncingBoxesPage(): Page {
   }
 
   // ── Physics ────────────────────────────────────────────────────────────────
-  function updatePhysics(): void {
+  function updatePhysics(timestamp: number): void {
+    const elapsedTimeMS = Math.min(timestamp - state.time, 100)
+    state.time = timestamp
+
+    // TODO: Work out where the collision will happen and take it into account to prevent tunnelling at high speeds. (Move the boxes up to the collision point, then away from each other the remaining amount of time)
 
     // Update positions
-    state.smallBoxX += state.smallBoxV
-    state.largeBoxX += state.largeBoxV
+    state.smallBoxX += state.smallBoxV * elapsedTimeMS / 1000
+    state.largeBoxX += state.largeBoxV * elapsedTimeMS / 1000
 
     // Box collision
     if (state.largeBoxX- BOX_SIZE/2 <= state.smallBoxX + BOX_SIZE/2 && state.largeBoxV < state.smallBoxV) {
@@ -115,11 +119,12 @@ export function createBouncingBoxesPage(): Page {
     }
   }
 
+
   // ── Animation ──────────────────────────────────────────────────────────────
-  function tick(): void {
+  function tick(timestamp: number): void {
     if (!state.running) return
 
-    updatePhysics()
+    updatePhysics(timestamp)
     draw()
 
     elHits.textContent = state.collisions.toString()
