@@ -463,12 +463,228 @@ canvas {
   transition: width 0.1s linear;
 }
 
-/* ─── Responsive ────────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
+/* ─── Mobile Top Bar ────────────────────────────────────────────────────────── */
+#mobile-topbar {
+  display: none;
+}
+
+/* ─── Nav Overlay ───────────────────────────────────────────────────────────── */
+#nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  backdrop-filter: blur(2px);
+}
+
+#nav-overlay.visible {
+  opacity: 1;
+}
+
+/* ─── Tablet (≤ 1024px) ─────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
   .viz-layout {
     grid-template-columns: 1fr;
   }
+
+  /* On tablet, stack stat cards in a 2-column grid */
+  .stats-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* Explanation and legend span full width */
+  .stats-panel .explanation,
+  .stats-panel .legend {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ─── Mobile (≤ 700px) ──────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  /* Use dynamic viewport height to avoid iOS URL-bar clipping */
+  html, body {
+    height: 100%;
+  }
+
+  #app {
+    flex-direction: column;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ── Mobile top bar ── */
+  #mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 52px;
+    padding: 0 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .mobile-title {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mobile-pi {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--amber);
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  /* ── Hamburger button ── */
+  #hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    transition: background 0.15s;
+  }
+
+  #hamburger:hover {
+    background: var(--bg-raised);
+  }
+
+  #hamburger span {
+    display: block;
+    height: 1.5px;
+    background: var(--text-secondary);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    transform-origin: center;
+  }
+
+  /* Animate to × when open */
+  #hamburger.open span:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+    background: var(--amber-bright);
+  }
+  #hamburger.open span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  #hamburger.open span:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+    background: var(--amber-bright);
+  }
+
+  /* ── Sidebar as slide-in drawer ── */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* ── Overlay ── */
+  #nav-overlay {
+    display: block;
+    pointer-events: none;
+  }
+
+  #nav-overlay.visible {
+    pointer-events: auto;
+  }
+
+  /* ── Main content scrolls under topbar ── */
+  #main-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Page padding ── */
   .page {
-    padding: 32px 24px;
+    padding: 24px 16px 48px;
+  }
+
+  /* ── Typography ── */
+  .page-title {
+    font-size: 2.2rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+  }
+
+  /* ── Stats: single column on small screens ── */
+  .stats-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-value.large {
+    font-size: 2rem;
+  }
+
+  /* ── Buttons: ensure comfortable tap targets ── */
+  .btn {
+    min-height: 44px;
+    padding: 10px 20px;
+    font-size: 0.75rem;
+  }
+
+  /* ── Home page cards: single column ── */
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .method-card {
+    padding: 20px;
+  }
+
+  .method-card:hover {
+    transform: none; /* Disable lift on touch devices */
+  }
+
+  /* ── Nav links: larger tap targets ── */
+  .nav-link {
+    padding: 14px 20px;
+  }
+
+  /* ── Formula overflow ── */
+  .formula {
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
