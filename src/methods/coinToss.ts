@@ -220,7 +220,7 @@ export function createCoinTossPage(): Page {
       clearTimeout(state.autoRafId)
       state.autoRafId = null
     }
-    btnStep.textContent = 'Auto'
+    btnStep.textContent = 'Show'
     btnStart.disabled = false
   }
 
@@ -324,7 +324,7 @@ export function createCoinTossPage(): Page {
     btnStart.textContent = 'Start'
     btnStart.disabled = false
     btnStep.disabled = false
-    btnStep.textContent = 'Auto'
+    btnStep.textContent = 'Show'
     btnReset.disabled = true
   }
 
@@ -350,7 +350,7 @@ export function createCoinTossPage(): Page {
           </div>
           <div style="margin-top:14px" class="controls">
             <button id="ct-start" class="btn primary">Start</button>
-            <button id="ct-step"  class="btn">Auto</button>
+            <button id="ct-step"  class="btn">Show</button>
             <button id="ct-reset" class="btn" disabled>Reset</button>
           </div>
         </div>
