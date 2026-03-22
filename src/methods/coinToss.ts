@@ -216,9 +216,10 @@ export function createCoinTossPage(): Page {
       }
 
       ctx.fillStyle = '#ffffff'
-      ctx.font = '12px monospace'
+      ctx.font = '10px monospace'
       ctx.textAlign = 'left'
-      ctx.fillText(`${seq.heads}/${seq.total} = ${seq.ratio.toFixed(3)}`, 10, rowY + rowHeight / 3)
+      const pi4 = (4 * seq.ratio).toFixed(2)
+      ctx.fillText(`${seq.heads}/${seq.total} x 4 = ${pi4}`, 10, rowY - rowHeight / 4)
     }
   }
 
