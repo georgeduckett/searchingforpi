@@ -161,9 +161,12 @@ export function createLeibnizPage(): Page {
     const pi = state.terms[n - 1]
     elEstimate.textContent = pi.toFixed(8)
     elTerms.textContent = n.toLocaleString()
-    const rawTerm = leibnizTerm(n - 1)
-    elCurrentTerm.textContent =
-      (rawTerm > 0 ? '+' : '') + rawTerm.toFixed(6)
+    const idx = n - 1
+    const rawTerm = leibnizTerm(idx)
+    const sign = rawTerm > 0 ? '+' : '-'
+    const denom = 2 * idx + 1
+    const absTerm = Math.abs(rawTerm)
+    elCurrentTerm.textContent = `${sign}1/${denom} = ${sign}${absTerm.toFixed(6)}`
     elError.textContent = Math.abs(pi - Math.PI).toFixed(8)
   }
 
