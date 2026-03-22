@@ -26,6 +26,14 @@ const methods = [
       'Drop a needle at random onto a lined surface. The probability it crosses a line is ' +
       'directly tied to π — a startling physical experiment.',
   },
+  {
+    index: '04',
+    hash: 'coin-toss',
+    title: 'Coin Toss Sequences',
+    desc:
+      'Toss coins until heads exceed tails. The average ratio of heads to total tosses ' +
+      'converges to π/4 in a surprising mathematical twist.',
+  },
 ]
 
 // ─── Page ───────────────────────────────────────────────────────────────────
