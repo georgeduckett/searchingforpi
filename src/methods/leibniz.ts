@@ -298,7 +298,10 @@ export function createLeibnizPage(): Page {
     })
     btnStep.addEventListener('click', () => {
       if (!state.running && state.termIndex < MAX_TERMS) {
-        addTerm()
+        const steps = state.termIndex === 0 ? 2 : 1
+        for (let i = 0; i < steps && state.termIndex < MAX_TERMS; i++) {
+          addTerm()
+        }
         btnReset.disabled = false
       }
     })
