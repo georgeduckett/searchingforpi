@@ -5,16 +5,18 @@ const CANVAS_W = 560
 const CANVAS_H = 320
 const SEQUENCES_PER_TICK = 10
 const MAX_SEQUENCES = 10_000
+const MAX_GRID_COLS = 20
+const MAX_GRID_ROWS = 10
 
 // ─── Colours ─────────────────────────────────────────────────────────────────
 const C_BG      = '#13161f'
-const C_GRID    = '#1a1e2b'
 const C_RATIO   = '#4a9eff'
 const C_TARGET  = '#c8922a'
 const C_TEXT    = '#4a5068'
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface Sequence {
+  tosses: boolean[]
   heads: number
   total: number
   ratio: number
@@ -25,18 +27,59 @@ interface State {
   sumRatios: number
   running: boolean
   rafId: number | null
+  sequenceBatch: Sequence[]
+  currentSequence: Sequence | null
+  sequencesToAdd: number
+  addAnimating: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function simulateSequence(): Sequence {
+function simulateSequence(maxTosses?: number): Sequence {
+  const tosses: boolean[] = []
   let heads = 0
   let total = 0
   while (heads <= total - heads) {
+    if (maxTosses !== undefined && total >= maxTosses) {
+      break
+    }
+    const isHead = Math.random() < 0.5
+    tosses.push(isHead)
     total++
-    if (Math.random() < 0.5) heads++
+    if (isHead) heads++
   }
-  const ratio = heads / total
-  return { heads, total, ratio }
+  const ratio = total > 0 ? heads / total : 0
+  return { tosses, heads, total, ratio }
+}
+
+function createEmptySequence(): Sequence {
+  return { tosses: [], heads: 0, total: 0, ratio: 0 }
+}
+
+function advanceSequence(seq: Sequence, maxTosses = MAX_GRID_COLS): boolean {
+  if (seq.total >= maxTosses) {
+    seq.ratio = seq.total > 0 ? seq.heads / seq.total : 0
+    return true
+  }
+
+  if (seq.heads > seq.total - seq.heads && seq.total > 0) {
+    seq.ratio = seq.heads / seq.total
+    return true
+  }
+
+  const isHead = Math.random() < 0.5
+  seq.tosses.push(isHead)
+  seq.total++
+  if (isHead) seq.heads++
+
+  const tails = seq.total - seq.heads
+
+  if (seq.heads > tails || seq.total >= maxTosses) {
+    seq.ratio = seq.total > 0 ? seq.heads / seq.total : 0
+    return true
+  }
+
+  seq.ratio = seq.heads / seq.total
+  return false
 }
 
 function estimatePi(sumRatios: number, numSequences: number): number {
@@ -51,7 +94,7 @@ function fmt(n: number, digits = 6): string {
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createCoinTossPage(): Page {
-  const state: State = { sequences: [], sumRatios: 0, running: false, rafId: null }
+  const state: State = { sequences: [], sumRatios: 0, running: false, rafId: null, sequenceBatch: [], currentSequence: null, sequencesToAdd: 0, addAnimating: false }
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D
   let btnStart: HTMLButtonElement
@@ -68,51 +111,97 @@ export function createCoinTossPage(): Page {
     ctx.fillStyle = C_BG
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
 
+    drawSequenceGrid()
+    drawGraph()
+  }
+
+  function drawGraph(): void {
     const n = state.sequences.length
     if (n === 0) return
 
-    // Draw grid
-    ctx.strokeStyle = C_GRID
-    ctx.lineWidth = 1
-    for (let x = 0; x <= CANVAS_W; x += 50) {
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, CANVAS_H)
-      ctx.stroke()
+    ctx.strokeStyle = C_RATIO
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    let cumulativeSum = 0
+    for (let i = 0; i < n; i++) {
+      cumulativeSum += state.sequences[i].ratio
+      const avg = cumulativeSum / (i + 1)
+      const x = (i / Math.max(n - 1, 1)) * CANVAS_W
+      const scale = Math.max(0, Math.min(1, (avg - 0.6) / 0.3))
+      const y = CANVAS_H - (scale * CANVAS_H)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
     }
-    for (let y = 0; y <= CANVAS_H; y += 50) {
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(CANVAS_W, y)
-      ctx.stroke()
-    }
+    ctx.stroke()
 
-    // Draw ratios as points
+    const lastX = ((n - 1) / Math.max(n - 1, 1)) * CANVAS_W
+    const lastScale = Math.max(0, Math.min(1, ((cumulativeSum / n) - 0.6) / 0.3))
+    const lastY = CANVAS_H - (lastScale * CANVAS_H)
     ctx.fillStyle = C_RATIO
-    const maxSeq = Math.min(n, 200) // show last 200
-    const startIdx = Math.max(0, n - maxSeq)
-    for (let i = 0; i < maxSeq; i++) {
-      const seq = state.sequences[startIdx + i]
-      const x = (i / maxSeq) * CANVAS_W
-      const y = CANVAS_H - (seq.ratio * CANVAS_H)
-      ctx.beginPath()
-      ctx.arc(x, y, 2, 0, Math.PI * 2)
-      ctx.fill()
-    }
+    ctx.beginPath()
+    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2)
+    ctx.fill()
 
-    // Target line at pi/4
-    const targetY = CANVAS_H - ((Math.PI / 4) * CANVAS_H)
+    const targetScale = Math.max(0, Math.min(1, (Math.PI / 4 - 0.6) / 0.3))
+    const targetY = CANVAS_H - (targetScale * CANVAS_H)
     ctx.strokeStyle = C_TARGET
     ctx.lineWidth = 2
+    ctx.setLineDash([5, 5])
     ctx.beginPath()
     ctx.moveTo(0, targetY)
     ctx.lineTo(CANVAS_W, targetY)
     ctx.stroke()
+    ctx.setLineDash([])
 
-    // Labels
     ctx.fillStyle = C_TEXT
     ctx.font = '12px monospace'
     ctx.fillText('π/4 target', 10, targetY - 5)
+    ctx.fillText('Running average ratio (0.6-0.9)', 10, 20)
+  }
+
+  function drawSequenceGrid(): void {
+    const combined: Sequence[] = [...state.sequenceBatch]
+    if (state.currentSequence) combined.push(state.currentSequence)
+    if (combined.length === 0) return
+
+    const rows = Math.min(combined.length, MAX_GRID_ROWS)
+    const visible = combined.slice(-rows)
+    const rowHeight = CANVAS_H / MAX_GRID_ROWS
+
+    for (let r = 0; r < visible.length; r++) {
+      const seq = visible[r]
+      const displayRow = r
+      const rowY = displayRow * rowHeight + rowHeight / 2
+      const tosses = seq.tosses
+      const finished = seq !== state.currentSequence
+
+      for (let j = 0; j < Math.min(tosses.length, MAX_GRID_COLS); j++) {
+        const x = (j * (CANVAS_W / MAX_GRID_COLS)) + 15
+        const isHead = tosses[j]
+        ctx.fillStyle = isHead ? C_RATIO : '#888'
+        ctx.globalAlpha = finished ? 1 : 0.8
+        ctx.beginPath()
+        ctx.arc(x, rowY, 10, 0, Math.PI * 2)
+        ctx.fill()
+
+        ctx.fillStyle = 'white'
+        ctx.font = '12px monospace'
+        ctx.textAlign = 'center'
+        ctx.fillText(isHead ? 'H' : 'T', x, rowY + 5)
+      }
+
+      ctx.globalAlpha = 1
+      if (!finished) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)'
+        ctx.lineWidth = 2
+        ctx.strokeRect(5, rowY - rowHeight / 2 + 4, CANVAS_W - 10, rowHeight - 8)
+      }
+
+      ctx.fillStyle = C_TEXT
+      ctx.font = '12px monospace'
+      ctx.textAlign = 'left'
+      ctx.fillText(`${seq.heads}/${seq.total} = ${seq.ratio.toFixed(3)}`, 10, rowY + rowHeight / 3)
+    }
   }
 
   // ── Add sequences ──────────────────────────────────────────────────────────
@@ -122,6 +211,52 @@ export function createCoinTossPage(): Page {
       state.sequences.push(seq)
       state.sumRatios += seq.ratio
     }
+  }
+
+  const STEP_FRAME_DELAY = 80
+
+  function animateStep(): void {
+    if (state.sequencesToAdd <= 0 || state.addAnimating === false) {
+      state.addAnimating = false
+      state.currentSequence = null
+      btnStep.disabled = false
+      btnStart.disabled = false
+      return
+    }
+
+    if (!state.currentSequence) {
+      state.currentSequence = createEmptySequence()
+    }
+
+    const complete = advanceSequence(state.currentSequence, MAX_GRID_COLS)
+    draw()
+
+    if (complete) {
+      const completed = state.currentSequence
+      if (completed) {
+        state.sequences.push(completed)
+        state.sumRatios += completed.ratio
+        state.sequenceBatch.push(completed)
+        if (state.sequenceBatch.length > MAX_GRID_ROWS) {
+          state.sequenceBatch.shift()
+        }
+      }
+
+      state.currentSequence = null
+      state.sequencesToAdd--
+      updateStats()
+      if (state.sequencesToAdd > 0) {
+        setTimeout(() => requestAnimationFrame(animateStep), STEP_FRAME_DELAY)
+      } else {
+        state.addAnimating = false
+        btnStep.disabled = false
+        btnStart.disabled = false
+      }
+      return
+    }
+
+    // continue current sequence
+    setTimeout(() => requestAnimationFrame(animateStep), STEP_FRAME_DELAY)
   }
 
   // ── Stats ──────────────────────────────────────────────────────────────────
@@ -155,23 +290,29 @@ export function createCoinTossPage(): Page {
   }
 
   function start(): void {
+    if (state.addAnimating) return
     state.running = true
     btnStart.disabled = true
     btnStart.textContent = 'Running…'
     btnReset.disabled = false
-    btnStep.disabled = false
+    btnStep.disabled = true
     state.rafId = requestAnimationFrame(tick)
   }
 
   function stop(): void {
     state.running = false
     if (state.rafId !== null) cancelAnimationFrame(state.rafId)
+    state.addAnimating = false
   }
 
   function reset(): void {
     stop()
     state.sequences = []
     state.sumRatios = 0
+    state.sequenceBatch = []
+    state.currentSequence = null
+    state.sequencesToAdd = 0
+    state.addAnimating = false
     draw()
     updateStats()
     btnStart.textContent = 'Start'
@@ -268,11 +409,16 @@ export function createCoinTossPage(): Page {
       start()
     })
     btnStep.addEventListener('click', () => {
-      if (!state.running) {
-        addSequences(10)
-        updateStats()
-        btnReset.disabled = false
-      }
+      if (state.running || state.addAnimating) return
+
+      state.sequencesToAdd = 10
+      state.addAnimating = true
+      btnStep.disabled = true
+      btnStart.disabled = true
+      btnReset.disabled = false
+
+      state.currentSequence = createEmptySequence()
+      animateStep()
     })
     btnReset.addEventListener('click', reset)
 
