@@ -2,12 +2,12 @@ import type { Page } from '../router'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 810
-const CANVAS_H = 480
+const CANVAS_H = 240
 const BOX_SIZE = 20
 const WALL_X = 50
-const INITIAL_X1 = WALL_X + CANVAS_W / 2
-const INITIAL_X2 = CANVAS_W - 100
-const V0 = 50
+const INITIAL_X1 = WALL_X + CANVAS_W / 3
+const INITIAL_X2 = (CANVAS_W / 3) * 2
+const V0 = 80
 const M1 = 1
 
 // ─── Colours ─────────────────────────────────────────────────────────────────
@@ -124,7 +124,6 @@ export function createBouncingBoxesPage(): Page {
     // Labels
     ctx.fillStyle = C_TEXT
     ctx.font = '12px monospace'
-    ctx.fillText('Wall', WALL_X - 50, CANVAS_H - 10)
     ctx.fillText('Box 1 (m=1)', state.smallBoxX - 30, CANVAS_H / 2 + 40)
     ctx.fillText(`Box 2 (m=${state.m2})`, state.largeBoxX - 30, CANVAS_H / 2 + 55)
   }
@@ -205,9 +204,9 @@ export function createBouncingBoxesPage(): Page {
       }
     }
 
-    // Stop if the large one is moving away and small one isn't approaching wall
-    if (state.largeBoxV > state.smallBoxV && state.smallBoxV >= 0 && state.largeBoxX - state.smallBoxX > 5 * BOX_SIZE) {
-      state.running = false
+    // Stop if the large one is moving away, the small one isn't approaching wall and is far away from the wall
+    if (state.largeBoxV > state.smallBoxV && state.smallBoxV >= 0 && state.largeBoxX - state.smallBoxX > 5 * BOX_SIZE && state.smallBoxX - BOX_SIZE / 2 > WALL_X + 5 * BOX_SIZE) {
+      stop()
     }
   }
 
