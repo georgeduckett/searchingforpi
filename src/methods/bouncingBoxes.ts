@@ -1,13 +1,13 @@
 import type { Page } from '../router'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_W = 560
-const CANVAS_H = 320
+const CANVAS_W = 810
+const CANVAS_H = 480
 const BOX_SIZE = 20
 const WALL_X = 50
-const INITIAL_X1 = WALL_X + 20
-const INITIAL_X2 = INITIAL_X1 + 80
-const V0 = 10
+const INITIAL_X1 = WALL_X + CANVAS_W / 2
+const INITIAL_X2 = CANVAS_W - 100
+const V0 = 50
 const M1 = 1
 
 // ─── Colours ─────────────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ export function createBouncingBoxesPage(): Page {
     // Calculate time to wall collision for small box
     let timeToWallCollision = Infinity
     if (state.smallBoxV < 0) {
-      const distToWall = (state.smallBoxX - BOX_SIZE / 2) - (WALL_X + 5)
+      const distToWall = (state.smallBoxX - BOX_SIZE / 2) - WALL_X
       if (distToWall > -EPSILON) {
         timeToWallCollision = distToWall / -state.smallBoxV
       }
