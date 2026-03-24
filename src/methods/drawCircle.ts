@@ -383,17 +383,14 @@ export function createDrawCirclePage(): Page {
             <h3>How it works</h3>
             <p>
               Draw a circle by clicking and dragging. Your circle is made of straight lines
-              that connect the points you create. The center is calculated as the average
-              of all your points.
+              that connect the points you create. This means we know it's exact length. The center is calculated as the average
+              of all your points, with the radius being the distance from that to the first point you drew.
+              We can then use these measurements to approximate π using the formula:
             </p>
             <div class="formula">π ≈ perimeter / (2 × r)</div>
             <p>
               The better your circle, the closer your approximation will be to π.
               Using smaller line segments gives smoother circles and better accuracy.
-            </p>
-            <p>
-              This demonstrates how π relates to the ratio of a circle's circumference
-              to its diameter — a relationship discovered over 4000 years ago!
             </p>
           </div>
         </div>
