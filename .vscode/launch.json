@@ -5,7 +5,7 @@
       "name": "Debug in Chrome",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:5173/SearchingForPi/",
+      "url": "http://localhost:5173/searchingforpi/",
       "webRoot": "${workspaceFolder}",
       "sourceMapPathOverrides": {
         "/@fs/*": "${workspaceFolder}/*"
