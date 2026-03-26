@@ -271,6 +271,9 @@ export function createGasMoleculesPage(): Page {
   }
 
   function start(): void {
+    if (state.particles.length === 0) {
+      addParticles(50)
+    }
     state.running = true
     btnStart.disabled = true
     btnReset.disabled = false
