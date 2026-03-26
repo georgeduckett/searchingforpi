@@ -102,8 +102,8 @@ export function createCoprimalityPage(): Page {
     // Labels
     ctx.fillStyle = C_TEXT_MUTED
     ctx.font = '11px "JetBrains Mono", monospace'
-    ctx.fillText('a →', offsetX - 25, offsetY + GRID_SIZE * cellSize / 2)
-    ctx.fillText('b ↓', offsetX + GRID_SIZE * cellSize / 2 - 10, offsetY - 10)
+    ctx.fillText('a', offsetX - 10, offsetY + GRID_SIZE * cellSize / 2)
+    ctx.fillText('b', offsetX + GRID_SIZE * cellSize / 2 - 10, offsetY - 5)
   }
 
   // ── Estimate π from coprime probability ─────────────────────────────────────
