@@ -138,12 +138,12 @@ function drawBouncingBoxesPreview(ctx: CanvasRenderingContext2D, time: number): 
   ctx.stroke()
 
   // Small box bouncing
-  const x1 = 25 + Math.abs(Math.sin(time * 0.8)) * 40
+  const x1 = 10 + Math.abs(Math.sin(time * 0.8)) * 40
   ctx.fillStyle = C_INSIDE
   ctx.fillRect(x1, s / 2 - 10, 20, 20)
 
   // Large box
-  const x2 = 80 + Math.abs(Math.sin(time * 0.6)) * 30
+  const x2 = 65 + Math.abs(Math.sin(time * 0.6)) * 30
   ctx.fillStyle = C_AMBER
   ctx.fillRect(x2, s / 2 - 10, 20, 20)
 }
