@@ -1,36 +1,26 @@
 import type { Page } from '../router'
+import { fmt, queryRequired } from '../utils'
+import { C_BG, C_GRID, C_INSIDE, C_AMBER, CANVAS_SIZE } from '../colors'
+const MAX_ITERATIONS = 9
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_SIZE = 560
-const MAX_ITERATIONS = 9  // Start with 6 sides, double up to 6 * 2^9 = 3072
-
-// ─── Colours ─────────────────────────────────────────────────────────────────
-const C_POLYGON_INNER = '#4a9eff'
+// ─── Colours (using shared with method-specific) ─────────────────────────────
+const C_POLYGON_INNER = C_INSIDE
 const C_POLYGON_OUTER = '#ff9f69'
-const C_CIRCLE = '#c8922a'
-const C_BG = '#13161f'
-const C_GRID = '#1a1e2b'
+const C_CIRCLE = C_AMBER
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface State {
   sides: number
   iteration: number
-  lower: number  // Inscribed polygon perimeter
-  upper: number  // Circumscribed polygon perimeter
+  lower: number
+  upper: number
   animating: boolean
   targetSides: number
   progress: number
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function fmt(n: number, digits = 10): string {
-  return n.toFixed(digits)
-}
-
-function calculateBounds(sides: number): { lower: number, upper: number } {
-  // For a circle with diameter 1:
-  // Inscribed polygon perimeter = sides * sin(π/sides)
-  // Circumscribed polygon perimeter = sides * tan(π/sides)
+function calculateBounds(sides: number): { lower: number; upper: number } {
   const angle = Math.PI / sides
   return {
     lower: sides * Math.sin(angle),
@@ -41,7 +31,7 @@ function calculateBounds(sides: number): { lower: number, upper: number } {
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createArchimedesPage(): Page {
   const state: State = {
-    sides: 6,       // Start with hexagon
+    sides: 6,
     iteration: 0,
     lower: 0,
     upper: 0,
@@ -87,14 +77,14 @@ export function createArchimedesPage(): Page {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(s, y); ctx.stroke()
     }
 
-    // Draw unit circle (the reference)
+    // Draw unit circle
     ctx.strokeStyle = C_CIRCLE
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
     ctx.stroke()
 
-    // Draw inscribed polygon (lower bound - fits inside circle)
+    // Draw inscribed polygon (lower bound)
     const innerScale = radius * (currentLower / Math.PI)
     ctx.strokeStyle = C_POLYGON_INNER
     ctx.lineWidth = 2
@@ -108,7 +98,7 @@ export function createArchimedesPage(): Page {
     }
     ctx.stroke()
 
-    // Draw circumscribed polygon (upper bound - encloses circle)
+    // Draw circumscribed polygon (upper bound)
     const outerScale = radius * (currentUpper / Math.PI)
     ctx.strokeStyle = C_POLYGON_OUTER
     ctx.lineWidth = 2
@@ -124,7 +114,7 @@ export function createArchimedesPage(): Page {
     ctx.stroke()
     ctx.setLineDash([])
 
-    // Draw vertices for visual clarity
+    // Draw vertices
     ctx.fillStyle = C_POLYGON_INNER
     for (let i = 0; i < currentSides; i++) {
       const angle = (i * 2 * Math.PI / currentSides) - Math.PI / 2
@@ -170,7 +160,6 @@ export function createArchimedesPage(): Page {
 
     state.progress += 0.04
 
-    // Interpolate values
     const currentLower = startLower + (endLower - startLower) * state.progress
     const currentUpper = startUpper + (endUpper - startUpper) * state.progress
     const currentSides = startSides + (state.targetSides - startSides) * state.progress
@@ -248,7 +237,6 @@ export function createArchimedesPage(): Page {
     const page = document.createElement('div')
     page.className = 'page'
 
-    // Start with initial calculation
     const initialBounds = calculateBounds(6)
     state.lower = initialBounds.lower
     state.upper = initialBounds.upper
@@ -256,8 +244,7 @@ export function createArchimedesPage(): Page {
     let options = ''
     for (let i = 0; i <= MAX_ITERATIONS; i++) {
       const sides = 6 * Math.pow(2, i)
-      const label = i === 0 ? `${sides} sides` : `${sides} sides`
-      options += `<option value="${i}">${label}</option>`
+      options += `<option value="${i}">${sides} sides</option>`
     }
 
     page.innerHTML = `
@@ -340,16 +327,15 @@ export function createArchimedesPage(): Page {
       </div>
     `
 
-    // Grab element refs
-    canvas = page.querySelector<HTMLCanvasElement>('#arch-canvas')!
-    btnStep = page.querySelector<HTMLButtonElement>('#arch-step')!
-    btnPlay = page.querySelector<HTMLButtonElement>('#arch-play')!
-    btnReset = page.querySelector<HTMLButtonElement>('#arch-reset')!
-    selectIter = page.querySelector<HTMLSelectElement>('#arch-select')!
-    elSides = page.querySelector('#arch-sides')!
-    elLower = page.querySelector('#arch-lower')!
-    elUpper = page.querySelector('#arch-upper')!
-    elGap = page.querySelector('#arch-gap')!
+    canvas = queryRequired(page, '#arch-canvas', HTMLCanvasElement)
+    btnStep = queryRequired(page, '#arch-step', HTMLButtonElement)
+    btnPlay = queryRequired(page, '#arch-play', HTMLButtonElement)
+    btnReset = queryRequired(page, '#arch-reset', HTMLButtonElement)
+    selectIter = queryRequired(page, '#arch-select', HTMLSelectElement)
+    elSides = queryRequired(page, '#arch-sides')
+    elLower = queryRequired(page, '#arch-lower')
+    elUpper = queryRequired(page, '#arch-upper')
+    elGap = queryRequired(page, '#arch-gap')
 
     ctx = canvas.getContext('2d')!
     updateStats()
@@ -361,7 +347,7 @@ export function createArchimedesPage(): Page {
     selectIter.addEventListener('change', (e) => {
       const iter = parseInt((e.target as HTMLSelectElement).value)
       const sides = 6 * Math.pow(2, iter)
-      const subElement = page.querySelector('.stat-sub')!
+      const subElement = queryRequired(page, '.stat-sub')
       subElement.textContent = `Iteration ${iter} of ${MAX_ITERATIONS}`
       stepTo(sides)
     })

@@ -1,22 +1,22 @@
 import type { Page } from '../router'
+import { queryRequired } from '../utils'
+import { C_BG, C_GRID, C_INSIDE, C_OUTSIDE, C_AMBER, C_TEXT_MUTED, C_BORDER } from '../colors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_W   = 560
-const CANVAS_H   = 320
-const MAX_TERMS  = 500
-const MS_PER_TERM = 40   // ms between terms in auto mode
+const CANVAS_W = 560
+const CANVAS_H = 320
+const MAX_TERMS = 500
+const MS_PER_TERM = 40
 
-const C_BG      = '#13161f'
-const C_GRID    = '#1a1e2b'
-const C_PLUS    = '#4a9eff'
-const C_MINUS   = '#ff6b6b'
-const C_AMBER   = '#c8922a'
-const C_TEXT    = '#4a5068'
-const C_ZERO    = '#2a2f42'
+// Method-specific colors (using shared with local aliases)
+const C_PLUS = C_INSIDE
+const C_MINUS = C_OUTSIDE
+const C_TEXT = C_TEXT_MUTED
+const C_ZERO = C_BORDER
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface State {
-  terms: number[]          // running partial sums (× 4 to give π estimate)
+  terms: number[]
   running: boolean
   termIndex: number
   intervalId: ReturnType<typeof setInterval> | null
@@ -80,14 +80,14 @@ export function createLeibnizPage(): Page {
     ctx.lineTo(W, midY)
     ctx.stroke()
 
-    // Draw bars for each term's contribution (the raw leibniz term, not sum)
-    const scale = (H * 0.4)   // max pixel height for a bar
+    // Draw bars for each term's contribution
+    const scale = (H * 0.4)
     for (let i = 0; i < visible; i++) {
       const idx = startIdx + i
       if (idx === 0) continue
-      const term = leibnizTerm(idx)          // the raw term at this index
+      const term = leibnizTerm(idx)
       const isPos = term > 0
-      const barH = Math.abs(term) * scale * 10   // scale up for visibility
+      const barH = Math.abs(term) * scale * 10
 
       ctx.fillStyle = isPos ? C_PLUS : C_MINUS
       ctx.globalAlpha = 0.5
@@ -104,7 +104,7 @@ export function createLeibnizPage(): Page {
     ctx.strokeStyle = C_AMBER
     ctx.lineWidth = 2
     ctx.beginPath()
-    const piScale = (H * 0.4) / Math.PI   // map π → 40% of half-height
+    const piScale = (H * 0.4) / Math.PI
 
     for (let i = 0; i < visible; i++) {
       const idx = startIdx + i
@@ -138,7 +138,7 @@ export function createLeibnizPage(): Page {
   function addTerm(): void {
     const n = state.termIndex
     const prev = state.terms.length > 0 ? state.terms[state.terms.length - 1] : 0
-    const newSum = prev + leibnizTerm(n) * 4   // ×4 to convert to π
+    const newSum = prev + leibnizTerm(n) * 4
     state.terms.push(newSum)
     state.termIndex++
     updateStats()
@@ -173,7 +173,7 @@ export function createLeibnizPage(): Page {
   function start(): void {
     state.running = true
     btnStart.disabled = true
-    btnStep.disabled  = false
+    btnStep.disabled = false
     btnReset.disabled = false
     btnStart.textContent = 'Running…'
     state.intervalId = setInterval(addTerm, MS_PER_TERM)
@@ -197,9 +197,9 @@ export function createLeibnizPage(): Page {
     draw()
     updateStats()
     btnStart.textContent = 'Start'
-    btnStart.disabled    = false
-    btnStep.disabled     = false
-    btnReset.disabled    = true
+    btnStart.disabled = false
+    btnStep.disabled = false
+    btnReset.disabled = true
   }
 
   // ── Build DOM ─────────────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ export function createLeibnizPage(): Page {
           </div>
           <div style="margin-top:14px" class="controls">
             <button id="lb-start" class="btn primary">Start</button>
-            <button id="lb-step"  class="btn">Step</button>
+            <button id="lb-step" class="btn">Step</button>
             <button id="lb-reset" class="btn" disabled>Reset</button>
           </div>
         </div>
@@ -284,14 +284,14 @@ export function createLeibnizPage(): Page {
       </div>
     `
 
-    canvas         = page.querySelector<HTMLCanvasElement>('#lb-canvas')!
-    btnStart       = page.querySelector<HTMLButtonElement>('#lb-start')!
-    btnStep        = page.querySelector<HTMLButtonElement>('#lb-step')!
-    btnReset       = page.querySelector<HTMLButtonElement>('#lb-reset')!
-    elEstimate     = page.querySelector('#lb-estimate')!
-    elTerms        = page.querySelector('#lb-terms')!
-    elCurrentTerm  = page.querySelector('#lb-current-term')!
-    elError        = page.querySelector('#lb-error')!
+    canvas = queryRequired(page, '#lb-canvas', HTMLCanvasElement)
+    btnStart = queryRequired(page, '#lb-start', HTMLButtonElement)
+    btnStep = queryRequired(page, '#lb-step', HTMLButtonElement)
+    btnReset = queryRequired(page, '#lb-reset', HTMLButtonElement)
+    elEstimate = queryRequired(page, '#lb-estimate')
+    elTerms = queryRequired(page, '#lb-terms')
+    elCurrentTerm = queryRequired(page, '#lb-current-term')
+    elError = queryRequired(page, '#lb-error')
 
     ctx = canvas.getContext('2d')!
     draw()

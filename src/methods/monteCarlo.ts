@@ -1,21 +1,18 @@
 import type { Page } from '../router'
+import { fmt, queryRequired } from '../utils'
+import { C_BG, C_GRID, C_INSIDE, C_OUTSIDE, C_AMBER, CANVAS_SIZE } from '../colors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_SIZE = 560          // logical pixels (square)
-const DOTS_PER_TICK = 30         // how many points to add per animation frame
+const DOTS_PER_TICK = 30
 const MAX_DOTS = 20_000
 
-// ─── Colours (pulled from CSS vars at runtime) ───────────────────────────────
-const C_INSIDE  = '#4a9eff'
-const C_OUTSIDE = '#ff6b6b'
-const C_CIRCLE  = '#c8922a'
-const C_BG      = '#13161f'
-const C_GRID    = '#1a1e2b'
+// ─── Colours (using shared with method-specific) ─────────────────────────────
+const C_CIRCLE = C_AMBER
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface State {
   inside: number
-  total:  number
+  total: number
   running: boolean
   rafId: number | null
 }
@@ -25,22 +22,13 @@ function estimatePi(inside: number, total: number): number {
   return total === 0 ? 0 : (4 * inside) / total
 }
 
-function fmt(n: number, digits = 6): string {
-  return n.toFixed(digits)
-}
-
-function error(estimate: number): string {
-  const e = Math.abs(estimate - Math.PI)
-  return e.toFixed(6)
-}
-
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createMonteCarloPage(): Page {
   const state: State = { inside: 0, total: 0, running: false, rafId: null }
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D
   let btnStart: HTMLButtonElement
-  let btnStep:  HTMLButtonElement
+  let btnStep: HTMLButtonElement
   let btnReset: HTMLButtonElement
   let elEstimate: HTMLElement
   let elTotal: HTMLElement
@@ -104,10 +92,10 @@ export function createMonteCarloPage(): Page {
   function updateStats(): void {
     const pi = estimatePi(state.inside, state.total)
     elEstimate.textContent = fmt(pi)
-    elTotal.textContent    = state.total.toLocaleString()
-    const err = parseFloat(error(pi))
-    elError.textContent    = `Error: ${fmt(err)}`
-    elError.className      = 'stat-error ' + (err < 0.01 ? 'improving' : 'neutral')
+    elTotal.textContent = state.total.toLocaleString()
+    const err = Math.abs(pi - Math.PI)
+    elError.textContent = `Error: ${fmt(err)}`
+    elError.className = 'stat-error ' + (err < 0.01 ? 'improving' : 'neutral')
     const pct = Math.min((state.total / MAX_DOTS) * 100, 100)
     elBar.style.width = `${pct}%`
   }
@@ -138,12 +126,12 @@ export function createMonteCarloPage(): Page {
     state.running = false
     if (state.rafId !== null) cancelAnimationFrame(state.rafId)
     state.inside = 0
-    state.total  = 0
+    state.total = 0
     drawBackground()
     updateStats()
     btnStart.textContent = 'Start'
-    btnStart.disabled    = false
-    btnReset.disabled    = true
+    btnStart.disabled = false
+    btnReset.disabled = true
   }
 
   // ── Build DOM ─────────────────────────────────────────────────────────────
@@ -168,7 +156,7 @@ export function createMonteCarloPage(): Page {
           </div>
           <div style="margin-top:14px" class="controls">
             <button id="mc-start" class="btn primary">Start</button>
-            <button id="mc-step"  class="btn">Add 10</button>
+            <button id="mc-step" class="btn">Add 10</button>
             <button id="mc-reset" class="btn" disabled>Reset</button>
           </div>
         </div>
@@ -223,15 +211,15 @@ export function createMonteCarloPage(): Page {
       </div>
     `
 
-    // Grab element refs
-    canvas     = page.querySelector<HTMLCanvasElement>('#mc-canvas')!
-    btnStart   = page.querySelector<HTMLButtonElement>('#mc-start')!
-    btnStep    = page.querySelector<HTMLButtonElement>('#mc-step')!
-    btnReset   = page.querySelector<HTMLButtonElement>('#mc-reset')!
-    elEstimate = page.querySelector('#mc-estimate')!
-    elTotal    = page.querySelector('#mc-total')!
-    elError    = page.querySelector('#mc-error')!
-    elBar      = page.querySelector<HTMLElement>('#mc-bar')!
+    // Grab element refs using queryRequired for safety
+    canvas = queryRequired(page, '#mc-canvas', HTMLCanvasElement)
+    btnStart = queryRequired(page, '#mc-start', HTMLButtonElement)
+    btnStep = queryRequired(page, '#mc-step', HTMLButtonElement)
+    btnReset = queryRequired(page, '#mc-reset', HTMLButtonElement)
+    elEstimate = queryRequired(page, '#mc-estimate')
+    elTotal = queryRequired(page, '#mc-total')
+    elError = queryRequired(page, '#mc-error')
+    elBar = queryRequired(page, '#mc-bar')
 
     ctx = canvas.getContext('2d')!
     drawBackground()

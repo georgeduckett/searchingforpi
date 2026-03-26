@@ -1,4 +1,6 @@
 import type { Page } from '../router'
+import { queryRequired } from '../utils'
+import { C_BG, C_TEXT_MUTED, C_INSIDE, C_AMBER, C_TEXT_PRIMARY } from '../colors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 810
@@ -10,12 +12,11 @@ const INITIAL_X2 = (CANVAS_W / 3) * 2
 const V0 = 80
 const M1 = 1
 
-// ─── Colours ─────────────────────────────────────────────────────────────────
-const C_BG      = '#13161f'
-const C_WALL    = '#4a5068'
-const C_BOX1    = '#4a9eff'
-const C_BOX2    = '#c8922a'
-const C_TEXT    = '#ffffff'
+// ─── Colours (using shared with method-specific) ─────────────────────────────
+const C_WALL = C_TEXT_MUTED
+const C_BOX1 = C_INSIDE
+const C_BOX2 = C_AMBER
+const C_TEXT = C_TEXT_PRIMARY
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface State {
@@ -59,15 +60,14 @@ export function createBouncingBoxesPage(): Page {
   let elResetBtn: HTMLButtonElement
   let audioContext: AudioContext | null = null
   let currentOsc: OscillatorNode | null = null
-  let soundTimeout: number | null = null
+  let soundTimeout: ReturnType<typeof setTimeout> | null = null
 
   // ── Sound ──────────────────────────────────────────────────────────────────
   function playCollisionSound(): void {
     if (!audioContext) {
-      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     }
 
-    // Stop existing sound if any
     if (currentOsc) {
       currentOsc.stop()
       currentOsc = null
@@ -132,7 +132,6 @@ export function createBouncingBoxesPage(): Page {
   function getTimeToCollision(): { type: 'box' | 'wall' | 'none'; time: number } {
     const EPSILON = 1e-6
 
-    // Calculate time to box-to-box collision
     let timeToBoxCollision = Infinity
     if (state.smallBoxV > state.largeBoxV) {
       const relVelocity = state.smallBoxV - state.largeBoxV
@@ -142,7 +141,6 @@ export function createBouncingBoxesPage(): Page {
       }
     }
 
-    // Calculate time to wall collision for small box
     let timeToWallCollision = Infinity
     if (state.smallBoxV < 0) {
       const distToWall = (state.smallBoxX - BOX_SIZE / 2) - WALL_X
@@ -151,7 +149,6 @@ export function createBouncingBoxesPage(): Page {
       }
     }
 
-    // Return the earliest collision
     if (timeToBoxCollision < timeToWallCollision && timeToBoxCollision < Infinity) {
       return { type: 'box', time: timeToBoxCollision }
     } else if (timeToWallCollision < Infinity) {
@@ -163,27 +160,22 @@ export function createBouncingBoxesPage(): Page {
   function updatePhysics(timestamp: number): void {
     const elapsedTimeMS = Math.min(timestamp - state.time, 100)
     state.time = timestamp
-    let timeRemaining = elapsedTimeMS / 1000 // Convert to seconds
+    let timeRemaining = elapsedTimeMS / 1000
 
-    // Loop through collisions until time is consumed or no more collisions
     while (timeRemaining > 1e-6) {
       const collision = getTimeToCollision()
 
-      // If no collision will happen, just move for remaining time and exit
       if (collision.time >= timeRemaining) {
         state.smallBoxX += state.smallBoxV * timeRemaining
         state.largeBoxX += state.largeBoxV * timeRemaining
         break
       }
 
-      // Move to collision point
       state.smallBoxX += state.smallBoxV * collision.time
       state.largeBoxX += state.largeBoxV * collision.time
       timeRemaining -= collision.time
 
-      // Resolve collision
       if (collision.type === 'box') {
-        // Elastic collision between boxes
         const m1 = M1
         const m2 = state.m2
         const v1 = state.smallBoxV
@@ -197,19 +189,16 @@ export function createBouncingBoxesPage(): Page {
         state.collisions++
         playCollisionSound()
       } else if (collision.type === 'wall') {
-        // Wall collision (elastic)
         state.smallBoxV = -state.smallBoxV
         state.collisions++
         playCollisionSound()
       }
     }
 
-    // Stop if the large one is moving away, the small one isn't approaching wall and is far away from the wall
     if (state.largeBoxV > state.smallBoxV && state.smallBoxV >= 0 && state.largeBoxX - state.smallBoxX > 5 * BOX_SIZE && state.smallBoxX - BOX_SIZE / 2 > WALL_X + 5 * BOX_SIZE) {
       stop()
     }
   }
-
 
   // ── Animation ──────────────────────────────────────────────────────────────
   function tick(timestamp: number): void {
@@ -325,12 +314,12 @@ export function createBouncingBoxesPage(): Page {
       </div>
     `
 
-    canvas = page.querySelector<HTMLCanvasElement>('#bb-canvas')!
-    elK = page.querySelector<HTMLSelectElement>('#bb-k')!
-    elHits = page.querySelector('#bb-hits')!
-    elPiApprox = page.querySelector('#bb-pi-approx')!
-    elStartBtn = page.querySelector<HTMLButtonElement>('#bb-start')!
-    elResetBtn = page.querySelector<HTMLButtonElement>('#bb-reset')!
+    canvas = queryRequired(page, '#bb-canvas', HTMLCanvasElement)
+    elK = queryRequired(page, '#bb-k', HTMLSelectElement)
+    elHits = queryRequired(page, '#bb-hits')
+    elPiApprox = queryRequired(page, '#bb-pi-approx')
+    elStartBtn = queryRequired(page, '#bb-start', HTMLButtonElement)
+    elResetBtn = queryRequired(page, '#bb-reset', HTMLButtonElement)
 
     ctx = canvas.getContext('2d')!
     draw()
@@ -344,6 +333,7 @@ export function createBouncingBoxesPage(): Page {
 
   function cleanup(): void {
     stop()
+    if (soundTimeout) clearTimeout(soundTimeout)
   }
 
   return { render, cleanup }

@@ -1,36 +1,37 @@
 import type { Page } from '../router'
+import { queryRequired } from '../utils'
+import { C_BG, C_BORDER, C_TEXT_MUTED, C_AMBER, C_AMBER_BRIGHT } from '../colors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_W      = 560
-const CANVAS_H      = 420
-const LINE_SPACING  = 60          // d  — distance between parallel lines (px)
-const NEEDLE_LENGTH = 60          // l  — needle length (px). l === d → short needle case
-const NEEDLES_PER_TICK = 8        // how many needles to drop per animation frame
-const MAX_NEEDLES   = 5_000
+const CANVAS_W = 560
+const CANVAS_H = 420
+const LINE_SPACING = 60 // d — distance between parallel lines (px)
+const NEEDLE_LENGTH = 60 // l — needle length (px). l === d → short needle case
+const NEEDLES_PER_TICK = 8
+const MAX_NEEDLES = 5_000
 
-// ─── Colours ─────────────────────────────────────────────────────────────────
-const C_BG        = '#13161f'
-const C_LINE      = '#2a2f42'
-const C_LINE_LBL  = '#3d4460'
-const C_CROSS     = '#c8922a'     // needle crosses a line  → amber
-const C_NO_CROSS  = '#4a5068'     // needle does not cross  → muted
-const C_CROSS_DOT = '#e8ac42'     // centre dot of crossing needle
+// ─── Colours (method-specific, using shared where applicable) ───────────────
+const C_LINE = C_BORDER
+const C_LINE_LBL = '#3d4460'
+const C_CROSS = C_AMBER
+const C_NO_CROSS = C_TEXT_MUTED
+const C_CROSS_DOT = C_AMBER_BRIGHT
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Needle {
-  cx: number      // centre x
-  cy: number      // centre y
-  angle: number   // radians
+  cx: number
+  cy: number
+  angle: number
   crosses: boolean
-  scale?: number  // for animation
+  scale?: number
 }
 
 interface State {
-  needles:  Needle[]
-  crosses:  number
-  total:    number
-  running:  boolean
-  rafId:    number | null
+  needles: Needle[]
+  crosses: number
+  total: number
+  running: boolean
+  rafId: number | null
   animating: boolean
   currentNeedle: Needle | null
   animationStartY: number
@@ -40,36 +41,44 @@ interface State {
 }
 
 // ─── Maths ───────────────────────────────────────────────────────────────────
-// For the short-needle case (l ≤ d):
-//   P(cross) = 2l / (dπ)   →   π = 2l / (d × P)
 function estimatePi(crosses: number, total: number): number {
   if (crosses === 0) return 0
   return (2 * NEEDLE_LENGTH * total) / (LINE_SPACING * crosses)
 }
 
 function doesCross(cy: number, angle: number): boolean {
-  // Distance from needle centre to nearest line
-  const distToLine = cy % LINE_SPACING           // cy in [0, LINE_SPACING)
-  const nearest    = Math.min(distToLine, LINE_SPACING - distToLine)
-  // Half the projected length of the needle perpendicular to the lines
-  const halfProj   = (NEEDLE_LENGTH / 2) * Math.abs(Math.sin(angle))
+  const distToLine = cy % LINE_SPACING
+  const nearest = Math.min(distToLine, LINE_SPACING - distToLine)
+  const halfProj = (NEEDLE_LENGTH / 2) * Math.abs(Math.sin(angle))
   return halfProj >= nearest
 }
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createBuffonPage(): Page {
-  const state: State = { needles: [], crosses: 0, total: 0, running: false, rafId: null, animating: false, currentNeedle: null, animationStartY: 0, animationEndY: 0, animationStartTime: 0, initialAngle: 0 }
+  const state: State = {
+    needles: [],
+    crosses: 0,
+    total: 0,
+    running: false,
+    rafId: null,
+    animating: false,
+    currentNeedle: null,
+    animationStartY: 0,
+    animationEndY: 0,
+    animationStartTime: 0,
+    initialAngle: 0
+  }
 
-  let canvas:     HTMLCanvasElement
-  let ctx:        CanvasRenderingContext2D
-  let btnStart:   HTMLButtonElement
-  let btnReset:   HTMLButtonElement
-  let btnStep:    HTMLButtonElement
+  let canvas: HTMLCanvasElement
+  let ctx: CanvasRenderingContext2D
+  let btnStart: HTMLButtonElement
+  let btnReset: HTMLButtonElement
+  let btnStep: HTMLButtonElement
   let elEstimate: HTMLElement
-  let elTotal:    HTMLElement
-  let elCrosses:  HTMLElement
-  let elError:    HTMLElement
-  let elBar:      HTMLElement
+  let elTotal: HTMLElement
+  let elCrosses: HTMLElement
+  let elError: HTMLElement
+  let elBar: HTMLElement
 
   // ── Draw ─────────────────────────────────────────────────────────────────
   function drawBackground(): void {
@@ -99,7 +108,7 @@ export function createBuffonPage(): Page {
     const dy = (length / 2) * Math.sin(n.angle)
 
     ctx.strokeStyle = n.crosses ? C_CROSS : C_NO_CROSS
-    ctx.lineWidth   = n.crosses ? 1.8 : 1
+    ctx.lineWidth = n.crosses ? 1.8 : 1
     ctx.globalAlpha = n.crosses ? 0.85 : 0.45
     ctx.beginPath()
     ctx.moveTo(n.cx - dx, n.cy - dy)
@@ -128,9 +137,9 @@ export function createBuffonPage(): Page {
 
   // ── Drop a single needle ──────────────────────────────────────────────────
   function dropNeedle(): void {
-    const cx    = Math.random() * CANVAS_W
-    const cy    = Math.random() * CANVAS_H
-    const angle = Math.random() * Math.PI      // [0, π) — full rotation covered by symmetry
+    const cx = Math.random() * CANVAS_W
+    const cy = Math.random() * CANVAS_H
+    const angle = Math.random() * Math.PI
     const crosses = doesCross(cy, angle)
 
     const needle: Needle = { cx, cy, angle, crosses }
@@ -144,12 +153,12 @@ export function createBuffonPage(): Page {
   // ── Animate dropping a single needle ──────────────────────────────────────
   function startNeedleAnimation(): void {
     if (state.animating) return
-    const cx    = Math.random() * CANVAS_W
+    const cx = Math.random() * CANVAS_W
     const finalCy = Math.random() * CANVAS_H
     const finalAngle = Math.random() * Math.PI
     const crosses = doesCross(finalCy, finalAngle)
 
-    const initialAngle = Math.random() * Math.PI * 2 // full rotation for spin
+    const initialAngle = Math.random() * Math.PI * 2
     state.currentNeedle = { cx, cy: finalCy - 80, angle: initialAngle, crosses, scale: 3.0 }
     state.animationStartY = finalCy - 80
     state.animationEndY = finalCy
@@ -163,14 +172,13 @@ export function createBuffonPage(): Page {
     if (!state.animating || !state.currentNeedle) return
 
     const elapsed = performance.now() - state.animationStartTime
-    const duration = 1000 // ms, slightly longer for more dramatic effect
+    const duration = 1000
     const progress = Math.min(elapsed / duration, 1)
-    const easeProgress = Math.pow(progress, 3) // ease in cubic - starts slow, ends fast (gravity)
+    const easeProgress = Math.pow(progress, 3)
 
     state.currentNeedle.cy = state.animationStartY + (state.animationEndY - state.animationStartY) * easeProgress
     state.currentNeedle.scale = 2.0 - (2.0 - 1.0) * easeProgress
 
-    // Interpolate angle, allowing for shortest rotation
     const angleDiff = ((finalAngle - state.initialAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
     state.currentNeedle.angle = state.initialAngle + angleDiff * easeProgress
 
@@ -179,7 +187,6 @@ export function createBuffonPage(): Page {
     if (progress < 1) {
       requestAnimationFrame(() => animateNeedle(finalAngle))
     } else {
-      // Animation complete
       state.currentNeedle.angle = finalAngle
       state.currentNeedle.scale = 1.0
       state.needles.push(state.currentNeedle)
@@ -188,21 +195,21 @@ export function createBuffonPage(): Page {
       state.animating = false
       state.currentNeedle = null
       updateStats()
-      btnStep.disabled = false // re-enable after animation
+      btnStep.disabled = false
     }
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   function updateStats(): void {
-    const pi  = estimatePi(state.crosses, state.total)
+    const pi = estimatePi(state.crosses, state.total)
     const err = state.total === 0 ? null : Math.abs(pi - Math.PI)
 
     elEstimate.textContent = state.total === 0 ? '—' : pi.toFixed(6)
-    elTotal.textContent    = state.total.toLocaleString()
-    elCrosses.textContent  = state.crosses.toLocaleString()
-    elError.textContent    = err === null ? '—' : err.toFixed(6)
-    elError.className      = 'stat-error ' + (err !== null && err < 0.05 ? 'improving' : 'neutral')
-    elBar.style.width      = `${Math.min((state.total / MAX_NEEDLES) * 100, 100)}%`
+    elTotal.textContent = state.total.toLocaleString()
+    elCrosses.textContent = state.crosses.toLocaleString()
+    elError.textContent = err === null ? '—' : err.toFixed(6)
+    elError.className = 'stat-error ' + (err !== null && err < 0.05 ? 'improving' : 'neutral')
+    elBar.style.width = `${Math.min((state.total / MAX_NEEDLES) * 100, 100)}%`
   }
 
   // ── Animation loop ────────────────────────────────────────────────────────
@@ -211,7 +218,7 @@ export function createBuffonPage(): Page {
     if (state.total >= MAX_NEEDLES) {
       stop()
       btnStart.textContent = 'Done'
-      btnStart.disabled    = true
+      btnStart.disabled = true
       return
     }
     const batch = Math.min(NEEDLES_PER_TICK, MAX_NEEDLES - state.total)
@@ -221,18 +228,18 @@ export function createBuffonPage(): Page {
   }
 
   function start(): void {
-    state.running     = true
+    state.running = true
     btnStart.disabled = true
     btnStart.textContent = 'Running…'
     btnReset.disabled = false
-    btnStep.disabled  = false
+    btnStep.disabled = false
     state.rafId = requestAnimationFrame(tick)
   }
 
   function stop(): void {
     state.running = false
     if (state.rafId !== null) { cancelAnimationFrame(state.rafId); state.rafId = null }
-    btnStart.disabled    = false
+    btnStart.disabled = false
     btnStart.textContent = 'Resume'
   }
 
@@ -243,13 +250,13 @@ export function createBuffonPage(): Page {
     state.currentNeedle = null
     state.needles = []
     state.crosses = 0
-    state.total   = 0
+    state.total = 0
     drawBackground_and_needles()
     updateStats()
     btnStart.textContent = 'Start'
-    btnStart.disabled    = false
-    btnStep.disabled     = false
-    btnReset.disabled    = true
+    btnStart.disabled = false
+    btnStep.disabled = false
+    btnReset.disabled = true
   }
 
   // ── Build DOM ─────────────────────────────────────────────────────────────
@@ -274,7 +281,7 @@ export function createBuffonPage(): Page {
           </div>
           <div style="margin-top:14px" class="controls">
             <button id="bf-start" class="btn primary">Start</button>
-            <button id="bf-step"  class="btn">Drop one</button>
+            <button id="bf-step" class="btn">Drop one</button>
             <button id="bf-reset" class="btn" disabled>Reset</button>
           </div>
         </div>
@@ -327,15 +334,15 @@ export function createBuffonPage(): Page {
       </div>
     `
 
-    canvas     = page.querySelector<HTMLCanvasElement>('#bf-canvas')!
-    btnStart   = page.querySelector<HTMLButtonElement>('#bf-start')!
-    btnStep    = page.querySelector<HTMLButtonElement>('#bf-step')!
-    btnReset   = page.querySelector<HTMLButtonElement>('#bf-reset')!
-    elEstimate = page.querySelector('#bf-estimate')!
-    elTotal    = page.querySelector('#bf-total')!
-    elCrosses  = page.querySelector('#bf-crosses')!
-    elError    = page.querySelector('#bf-error')!
-    elBar      = page.querySelector<HTMLElement>('#bf-bar')!
+    canvas = queryRequired(page, '#bf-canvas', HTMLCanvasElement)
+    btnStart = queryRequired(page, '#bf-start', HTMLButtonElement)
+    btnStep = queryRequired(page, '#bf-step', HTMLButtonElement)
+    btnReset = queryRequired(page, '#bf-reset', HTMLButtonElement)
+    elEstimate = queryRequired(page, '#bf-estimate')
+    elTotal = queryRequired(page, '#bf-total')
+    elCrosses = queryRequired(page, '#bf-crosses')
+    elError = queryRequired(page, '#bf-error')
+    elBar = queryRequired(page, '#bf-bar')
 
     ctx = canvas.getContext('2d')!
     drawBackground()
@@ -349,7 +356,7 @@ export function createBuffonPage(): Page {
       if (!state.running && !state.animating) {
         startNeedleAnimation()
         btnReset.disabled = false
-        btnStep.disabled  = true // disable during animation
+        btnStep.disabled = true
       }
     })
 

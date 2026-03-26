@@ -1,4 +1,6 @@
 import type { Page } from '../router'
+import { fmt, queryRequired } from '../utils'
+import { C_BG, C_INSIDE, C_AMBER, C_TEXT_MUTED } from '../colors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 560
@@ -8,11 +10,10 @@ const MAX_SEQUENCES = 10_000
 const MAX_GRID_COLS = 20
 const MAX_GRID_ROWS = 10
 
-// ─── Colours ─────────────────────────────────────────────────────────────────
-const C_BG      = '#13161f'
-const C_RATIO   = '#4a9eff'
-const C_TARGET  = '#c8922a'
-const C_TEXT    = '#4a5068'
+// ─── Colours (using shared with method-specific) ─────────────────────────────
+const C_RATIO = C_INSIDE
+const C_TARGET = C_AMBER
+const C_TEXT = C_TEXT_MUTED
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface Sequence {
@@ -30,7 +31,7 @@ interface State {
   sequenceBatch: Sequence[]
   currentSequence: Sequence | null
   autoAdding: boolean
-  autoRafId: number | null
+  autoRafId: ReturnType<typeof setTimeout> | null
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -63,7 +64,6 @@ function advanceSequence(seq: Sequence, maxTosses = MAX_GRID_COLS): boolean {
   }
 
   if (seq.total >= maxTosses) {
-    // We're past visible area: finish sequence without per-frame rendering.
     while (!(seq.heads > seq.total - seq.heads)) {
       const isHead = Math.random() < 0.5
       seq.tosses.push(isHead)
@@ -107,13 +107,19 @@ function estimatePi(sumRatios: number, numSequences: number): number {
   return 4 * avgRatio
 }
 
-function fmt(n: number, digits = 6): string {
-  return n.toFixed(digits)
-}
-
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createCoinTossPage(): Page {
-  const state: State = { sequences: [], sumRatios: 0, running: false, rafId: null, sequenceBatch: [], currentSequence: null, autoAdding: false, autoRafId: null }
+  const state: State = {
+    sequences: [],
+    sumRatios: 0,
+    running: false,
+    rafId: null,
+    sequenceBatch: [],
+    currentSequence: null,
+    autoAdding: false,
+    autoRafId: null
+  }
+
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D
   let btnStart: HTMLButtonElement
@@ -281,7 +287,7 @@ export function createCoinTossPage(): Page {
       updateStats()
     }
 
-    state.autoRafId = window.setTimeout(() => {
+    state.autoRafId = setTimeout(() => {
       requestAnimationFrame(animateStep)
     }, STEP_FRAME_DELAY)
   }
@@ -371,7 +377,7 @@ export function createCoinTossPage(): Page {
           </div>
           <div style="margin-top:14px" class="controls">
             <button id="ct-start" class="btn primary">Start</button>
-            <button id="ct-step"  class="btn">Show</button>
+            <button id="ct-step" class="btn">Show</button>
             <button id="ct-reset" class="btn" disabled>Reset</button>
           </div>
         </div>
@@ -411,7 +417,7 @@ export function createCoinTossPage(): Page {
               to total flips approaches π/4.
             </p>
             <p>
-              Press <em>Auto</em> to start or pause continuous sequence generation,
+              Press <em>Show</em> to watch individual sequences,
               or use <em>Start</em> for faster graph-only run.
             </p>
           </div>
@@ -419,15 +425,15 @@ export function createCoinTossPage(): Page {
       </div>
     `
 
-    canvas      = page.querySelector<HTMLCanvasElement>('#ct-canvas')!
-    btnStart    = page.querySelector<HTMLButtonElement>('#ct-start')!
-    btnStep     = page.querySelector<HTMLButtonElement>('#ct-step')!
-    btnReset    = page.querySelector<HTMLButtonElement>('#ct-reset')!
-    elEstimate  = page.querySelector('#ct-estimate')!
-    elSequences = page.querySelector('#ct-sequences')!
-    elAvgRatio  = page.querySelector('#ct-avg-ratio')!
-    elError     = page.querySelector('#ct-error')!
-    elBar       = page.querySelector<HTMLElement>('#ct-bar')!
+    canvas = queryRequired(page, '#ct-canvas', HTMLCanvasElement)
+    btnStart = queryRequired(page, '#ct-start', HTMLButtonElement)
+    btnStep = queryRequired(page, '#ct-step', HTMLButtonElement)
+    btnReset = queryRequired(page, '#ct-reset', HTMLButtonElement)
+    elEstimate = queryRequired(page, '#ct-estimate')
+    elSequences = queryRequired(page, '#ct-sequences')
+    elAvgRatio = queryRequired(page, '#ct-avg-ratio')
+    elError = queryRequired(page, '#ct-error')
+    elBar = queryRequired(page, '#ct-bar')
 
     ctx = canvas.getContext('2d')!
     draw()

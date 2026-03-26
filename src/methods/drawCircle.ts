@@ -1,16 +1,13 @@
 import type { Page } from '../router'
+import { fmt, distance, getCanvasCoords, queryRequired } from '../utils'
+import { C_BG, C_GRID, C_INSIDE, C_AMBER, C_SUCCESS, C_TEXT_MUTED, C_BORDER, C_TEXT_PRIMARY, CANVAS_SIZE } from '../colors'
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const CANVAS_SIZE = 560
-
-// ─── Colours ─────────────────────────────────────────────────────────────────
-const C_DRAWN = '#4a9eff'
-const C_APPROX = '#c8922a'
-const C_CENTER = '#e8e4d9'
-const C_RADIUS = '#4ecb71'
-const C_PERFECT = '#2a2f42'
-const C_GRID = '#1a1e2b'
-const C_BG = '#13161f'
+// ─── Colours (method-specific) ──────────────────────────────────────────────
+const C_DRAWN = C_INSIDE
+const C_APPROX = C_AMBER
+const C_CENTER = C_TEXT_PRIMARY
+const C_RADIUS = C_SUCCESS
+const C_PERFECT = C_BORDER
 
 // ─── State ───────────────────────────────────────────────────────────────────
 interface Point {
@@ -25,16 +22,7 @@ interface State {
   avgRadius: number
   perimeter: number
   isDrawing: boolean
-  segmentLength: number // Maximum distance between points when drawing
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function fmt(n: number, digits = 6): string {
-  return n.toFixed(digits)
-}
-
-function distance(p1: { x: number, y: number }, p2: { x: number, y: number }): number {
-  return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
+  segmentLength: number
 }
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
@@ -92,14 +80,14 @@ export function createDrawCirclePage(): Page {
 
     if (state.points.length === 0) {
       // Draw hint text
-      ctx.fillStyle = '#4a5068'
+      ctx.fillStyle = C_TEXT_MUTED
       ctx.font = '14px JetBrains Mono, monospace'
       ctx.textAlign = 'center'
       ctx.fillText('Click and drag to draw a circle', s / 2, s / 2)
       return
     }
 
-    // Calculate center/radius if not already set (e.g. during first click)
+    // Calculate center/radius if not already set
     const center = state.center ?? calculateCenter()
     const radius = state.avgRadius > 0 ? state.avgRadius : calculateAvgRadius(center)
 
@@ -194,9 +182,9 @@ export function createDrawCirclePage(): Page {
       perimeter += distance(state.points[i], next)
     }
     state.perimeter = perimeter
-    elPerimeter.textContent = `${fmt(perimeter, 4)}`
+    elPerimeter.textContent = `${fmt(perimeter, 4)} px`
 
-    elRadius.textContent = `${fmt(state.avgRadius, 4)}`
+    elRadius.textContent = `${fmt(state.avgRadius, 4)} px`
 
     // Calculate π approximation: perimeter / (2 * radius)
     const piApprox = state.avgRadius > 0 ? perimeter / (2 * state.avgRadius) : 0
@@ -205,24 +193,20 @@ export function createDrawCirclePage(): Page {
 
     elApprox.textContent = fmt(piApprox, 8)
 
-    elError.textContent    = `Error: ${fmt(error, 8)}`
-    elError.className      = 'stat-error ' + (errorPct < 1 ? 'improving' : 'neutral')
-  }
-
-  // ── Get canvas coordinates from mouse event ─────────────────────────────────
-  function getCanvasCoords(e: MouseEvent): { x: number, y: number } {
-    const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY
+    if (errorPct > 10) {
+      elError.innerHTML = `Error: ${fmt(errorPct, 2)}% <span style="color:var(--text-muted)">(draw more!)</span>`
+    } else if (errorPct > 1) {
+      elError.innerHTML = `Error: <span style="color:${C_DRAWN}">${fmt(errorPct, 2)}%</span>`
+    } else if (errorPct > 0.1) {
+      elError.innerHTML = `Error: <span style="color:#4ecb71">${fmt(errorPct, 2)}%</span>`
+    } else {
+      elError.innerHTML = `Error: <span style="color:#4ecb71">Excellent! ${fmt(errorPct, 3)}%</span>`
     }
   }
 
   // ── Mouse handlers ─────────────────────────────────────────────────────────
   function onMouseDown(e: MouseEvent): void {
-    const coords = getCanvasCoords(e)
+    const coords = getCanvasCoords(canvas, e)
     state.points = []
     state.center = null
     state.avgRadius = 0
@@ -237,7 +221,7 @@ export function createDrawCirclePage(): Page {
   function onMouseMove(e: MouseEvent): void {
     if (!state.isDrawing || lastDrawPoint === null) return
 
-    const coords = getCanvasCoords(e)
+    const coords = getCanvasCoords(canvas, e)
     const dist = distance(lastDrawPoint, coords)
 
     // Only add points if they're far enough apart
@@ -295,6 +279,51 @@ export function createDrawCirclePage(): Page {
       const center = calculateCenter()
       state.center = center
       state.avgRadius = calculateAvgRadius(center)
+      updateStats()
+      draw()
+    }
+  }
+
+  // Touch event handlers that work directly with coordinates
+  function handleTouchStart(e: TouchEvent): void {
+    if (!e.touches[0]) return
+    const coords = getCanvasCoords(canvas, e)
+    state.points = []
+    state.center = null
+    state.avgRadius = 0
+    state.perimeter = 0
+    state.isDrawing = true
+    lastDrawPoint = coords
+    state.points.push({ ...coords, angle: 0 })
+    updateStats()
+    draw()
+  }
+
+  function handleTouchMove(e: TouchEvent): void {
+    if (!state.isDrawing || lastDrawPoint === null || !e.touches[0]) return
+
+    const coords = getCanvasCoords(canvas, e)
+    const dist = distance(lastDrawPoint, coords)
+
+    if (dist >= state.segmentLength) {
+      let angle = 0
+      if (state.center) {
+        angle = Math.atan2(coords.y - state.center.y, coords.x - state.center.x)
+      }
+
+      state.points.push({ ...coords, angle })
+      lastDrawPoint = coords
+
+      const center = calculateCenter()
+      state.center = center
+      state.avgRadius = calculateAvgRadius(center)
+
+      if (state.center) {
+        for (const p of state.points) {
+          p.angle = Math.atan2(p.y - center.y, p.x - center.x)
+        }
+      }
+
       updateStats()
       draw()
     }
@@ -365,9 +394,8 @@ export function createDrawCirclePage(): Page {
           <div class="stat-card">
             <div class="stat-label">Radius</div>
             <div class="stat-value" id="draw-radius" style="color:${C_RADIUS}">—</div>
-            <div class="stat-sub">Calculated from average point to first point</div>
+            <div class="stat-sub">Average distance to center</div>
           </div>
-
 
           <div class="legend">
             <div class="legend-item">
@@ -392,8 +420,8 @@ export function createDrawCirclePage(): Page {
             <h3>How it works</h3>
             <p>
               Draw a circle by clicking and dragging. Your circle is made of straight lines
-              that connect the points you create. This means we know it's exact length. The center is calculated as the average
-              of all your points, with the radius being the distance from that to the first point you drew.
+              that connect the points you create. This means we know its exact length. The center is calculated as the average
+              of all your points, with the radius being the average distance from that center.
               We can then use these measurements to approximate π using the formula:
             </p>
             <div class="formula">π ≈ perimeter / (2 × r)</div>
@@ -406,17 +434,17 @@ export function createDrawCirclePage(): Page {
       </div>
     `
 
-    // Grab element refs
-    canvas = page.querySelector<HTMLCanvasElement>('#draw-canvas')!
+    // Grab element refs using queryRequired for safety
+    canvas = queryRequired(page, '#draw-canvas', HTMLCanvasElement)
     ctx = canvas.getContext('2d')!
-    btnClear = page.querySelector<HTMLButtonElement>('#draw-clear')!
-    elPoints = page.querySelector('#draw-points')!
-    elPerimeter = page.querySelector('#draw-perimeter')!
-    elRadius = page.querySelector('#draw-radius')!
-    elApprox = page.querySelector('#draw-approx')!
-    elError = page.querySelector('#draw-error')!
-    sliderLength = page.querySelector<HTMLInputElement>('#draw-length')!
-    elLength = page.querySelector('#draw-length-val')!
+    btnClear = queryRequired(page, '#draw-clear', HTMLButtonElement)
+    elPoints = queryRequired(page, '#draw-points')
+    elPerimeter = queryRequired(page, '#draw-perimeter')
+    elRadius = queryRequired(page, '#draw-radius')
+    elApprox = queryRequired(page, '#draw-approx')
+    elError = queryRequired(page, '#draw-error')
+    sliderLength = queryRequired(page, '#draw-length', HTMLInputElement)
+    elLength = queryRequired(page, '#draw-length-val')
 
     draw()
 
@@ -425,17 +453,15 @@ export function createDrawCirclePage(): Page {
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
 
-    // Touch support
+    // Touch support - create adapter to convert touch events to coordinates
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault()
-      const touch = e.touches[0] as unknown as MouseEvent
-      onMouseDown(touch)
+      handleTouchStart(e)
     })
 
     canvas.addEventListener('touchmove', (e) => {
       e.preventDefault()
-      const touch = e.touches[0] as unknown as MouseEvent
-      onMouseMove(touch)
+      handleTouchMove(e)
     })
 
     window.addEventListener('touchend', onMouseUp)
