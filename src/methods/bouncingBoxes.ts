@@ -288,16 +288,13 @@ export function createBouncingBoxesPage(): Page {
         <!-- Stats -->
         <div class="stats-panel">
           <div class="stat-card">
-            <div class="stat-label">Collisions</div>
-            <div class="stat-value large" id="bb-hits">0</div>
-            <div class="stat-sub">after first collision</div>
-          </div>
-
           <div class="stat-card">
             <div class="stat-label">π approximation</div>
-            <div class="stat-value" id="bb-pi-approx">0.0</div>
+            <div class="stat-value large" id="bb-pi-approx">0.0</div>
           </div>
-
+            <div class="stat-label">Collisions</div>
+            <div class="stat-value" id="bb-hits">0</div>
+          </div>
           <div class="explanation">
             <h3>The Bouncing Boxes Method</h3>
             <p>

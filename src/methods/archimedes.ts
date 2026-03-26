@@ -275,30 +275,26 @@ export function createArchimedesPage(): Page {
         <!-- Stats + info -->
         <div class="stats-panel">
           <div class="stat-card">
-            <div class="stat-label">Polygon sides</div>
-            <div class="stat-value large" id="arch-sides">6 sides</div>
-            <div class="stat-sub">Iteration ${0} of ${MAX_ITERATIONS}</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">Lower bound (inscribed)</div>
-            <div class="stat-value" id="arch-lower" style="color:${C_POLYGON_INNER}">0.0000000000</div>
-          </div>
-
-          <div class="stat-card">
             <div class="stat-label">Upper bound (circumscribed)</div>
             <div class="stat-value" id="arch-upper" style="color:${C_POLYGON_OUTER}">0.0000000000</div>
             <div class="stat-sub" id="arch-gap">Gap: —</div>
           </div>
-
+          <div class="stat-card">
+            <div class="stat-label">Lower bound (inscribed)</div>
+            <div class="stat-value" id="arch-lower" style="color:${C_POLYGON_INNER}">0.0000000000</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Polygon sides</div>
+            <div class="stat-value" id="arch-sides">6 sides</div>
+          </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:${C_POLYGON_OUTER}"></div>
+              Circumscribed polygon (π ≤ this)
+            </div>
           <div class="legend">
             <div class="legend-item">
               <div class="legend-dot" style="background:${C_POLYGON_INNER}"></div>
               Inscribed polygon (π ≥ this)
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot" style="background:${C_POLYGON_OUTER}"></div>
-              Circumscribed polygon (π ≤ this)
             </div>
             <div class="legend-item">
               <div class="legend-dot" style="background:${C_CIRCLE}"></div>
