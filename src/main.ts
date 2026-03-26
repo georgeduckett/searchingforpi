@@ -1,10 +1,11 @@
 import './style.css'
 import { initRouter, registerPage } from './router'
-import { createHomePage }       from './methods/home'
+import { allPages } from './pages'
+import { createHomePage } from './methods/home'
 import { createMonteCarloPage } from './methods/monteCarlo'
-import { createLeibnizPage }    from './methods/leibniz'
-import { createBuffonPage }     from './methods/buffon'
-import { createCoinTossPage }   from './methods/coinToss'
+import { createLeibnizPage } from './methods/leibniz'
+import { createBuffonPage } from './methods/buffon'
+import { createCoinTossPage } from './methods/coinToss'
 import { createBouncingBoxesPage } from './methods/bouncingBoxes'
 import { createArchimedesPage } from './methods/archimedes'
 import { createDrawCirclePage } from './methods/drawCircle'
@@ -17,33 +18,54 @@ import { createGaltonPage } from './methods/galton'
 import { createCirclePackingPage } from './methods/circlePacking'
 
 // ─── Register pages ───────────────────────────────────────────────────────────
-registerPage('home',        createHomePage)
-registerPage('monte-carlo', createMonteCarloPage)
-registerPage('leibniz',     createLeibnizPage)
-registerPage('buffon',      createBuffonPage)
-registerPage('coin-toss',   createCoinTossPage)
-registerPage('bouncing-boxes', createBouncingBoxesPage)
-registerPage('archimedes',  createArchimedesPage)
-registerPage('draw-circle', createDrawCirclePage)
-registerPage('gas-molecules', createGasMoleculesPage)
-registerPage('riemann', createRiemannPage)
-registerPage('basel', createBaselPage)
-registerPage('wallis', createWallisPage)
-registerPage('coprimality', createCoprimalityPage)
-registerPage('galton', createGaltonPage)
-registerPage('circle-packing', createCirclePackingPage)
+// Page factories mapped by hash
+const pageFactories: Record<string, () => { render: () => HTMLElement; cleanup: () => void }> = {
+  home: createHomePage,
+  'monte-carlo': createMonteCarloPage,
+  leibniz: createLeibnizPage,
+  buffon: createBuffonPage,
+  'coin-toss': createCoinTossPage,
+  'bouncing-boxes': createBouncingBoxesPage,
+  archimedes: createArchimedesPage,
+  'draw-circle': createDrawCirclePage,
+  'gas-molecules': createGasMoleculesPage,
+  riemann: createRiemannPage,
+  basel: createBaselPage,
+  wallis: createWallisPage,
+  coprimality: createCoprimalityPage,
+  galton: createGaltonPage,
+  'circle-packing': createCirclePackingPage,
+}
+
+// Register all pages
+for (const [hash, factory] of Object.entries(pageFactories)) {
+  registerPage(hash, factory)
+}
+
+// ─── Build sidebar navigation from pages data ─────────────────────────────────
+const navList = document.getElementById('nav-list')!
+for (const page of allPages) {
+  const li = document.createElement('li')
+  li.innerHTML = `
+    <a href="#${page.hash}" class="nav-link" data-page="${page.hash}">
+      <span class="nav-index">${page.index}</span>
+      <span class="nav-label">${page.title}</span>
+    </a>
+  `
+  navList.appendChild(li)
+}
 
 // ─── Mobile nav drawer ────────────────────────────────────────────────────────
-const sidebar   = document.getElementById('sidebar')!
+const sidebar = document.getElementById('sidebar')!
 const hamburger = document.getElementById('hamburger')!
-const overlay   = document.getElementById('nav-overlay')!
+const overlay = document.getElementById('nav-overlay')!
 
 function openNav(): void {
   sidebar.classList.add('open')
   overlay.classList.add('visible')
   hamburger.classList.add('open')
   hamburger.setAttribute('aria-expanded', 'true')
-  document.body.style.overflow = 'hidden'   // prevent background scroll
+  document.body.style.overflow = 'hidden' // prevent background scroll
 }
 
 function closeNav(): void {
