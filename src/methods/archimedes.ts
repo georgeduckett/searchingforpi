@@ -49,6 +49,8 @@ export function createArchimedesPage(): Page {
   let elLower: HTMLElement
   let elUpper: HTMLElement
   let elGap: HTMLElement
+  let elEstimate: HTMLElement
+  let elError: HTMLElement
   let selectIter: HTMLSelectElement
   let animationId: number | null = null
   let startLower: number = 0
@@ -132,9 +134,14 @@ export function createArchimedesPage(): Page {
     state.lower = currentBounds.lower
     state.upper = currentBounds.upper
 
+    const estimate = (state.lower + state.upper) / 2
+    const error = Math.abs(estimate - Math.PI)
     const gap = state.upper - state.lower
     const digits = Math.min(12, 4 + state.iteration)
 
+    elEstimate.textContent = fmt(estimate)
+    elError.textContent = `Error: ${fmt(error)}`
+    elError.className = 'stat-error ' + (error < 0.01 ? 'improving' : 'neutral')
     elSides.textContent = `${state.sides.toLocaleString()} sides`
     elLower.textContent = fmt(state.lower, digits)
     elUpper.textContent = fmt(state.upper, digits)
@@ -275,7 +282,12 @@ export function createArchimedesPage(): Page {
         <!-- Stats + info -->
         <div class="stats-panel">
           <div class="stat-card">
-            <div class="stat-label">Upper bound (circumscribed)</div>
+            <div class="stat-label">π estimate (average)</div>
+<div class="stat-value large" id="arch-estimate">0.000000</div>
+<div class="stat-error neutral" id="arch-error">Error: —</div>
+</div>
+<div class="stat-card">
+<div class="stat-label">Upper bound (circumscribed)</div>
             <div class="stat-value" id="arch-upper" style="color:${C_POLYGON_OUTER}">0.0000000000</div>
             <div class="stat-sub" id="arch-gap">Gap: —</div>
           </div>
@@ -332,6 +344,8 @@ export function createArchimedesPage(): Page {
     elLower = queryRequired(page, '#arch-lower')
     elUpper = queryRequired(page, '#arch-upper')
     elGap = queryRequired(page, '#arch-gap')
+ elEstimate = queryRequired(page, '#arch-estimate')
+ elError = queryRequired(page, '#arch-error')
 
     ctx = canvas.getContext('2d')!
     updateStats()
