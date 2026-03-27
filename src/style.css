@@ -500,6 +500,9 @@ canvas {
 
 .preview-canvas {
   display: block;
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
 }
 
 .method-card-content {
@@ -766,7 +769,7 @@ canvas {
 
   .method-card-preview {
     width: 100%;
-    height: 120px;
+    aspect-ratio: 1;
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
