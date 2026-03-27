@@ -15,7 +15,13 @@
     {
       "label": "Start Vite dev server",
       "type": "shell",
-      "command": "(npx tsc --noEmit) -and (npm run dev)",
+      "options": {
+        "shell": {
+          "executable": "bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "command": "npx tsc --noEmit && npm run dev",
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
