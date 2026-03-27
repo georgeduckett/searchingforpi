@@ -22,8 +22,8 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
 
   // Draw circle using line segments (12 segments total)
   const totalSegments = 12
-  const segmentsToDraw = Math.floor(progress * (totalSegments + 1))
-  const segmentProgress = (progress * (totalSegments + 1)) % 1
+  const completedSegments = Math.floor(progress * totalSegments)
+  const segmentProgress = (progress * totalSegments) % 1
 
   ctx.strokeStyle = C_AMBER
   ctx.lineWidth = 2.5
@@ -31,7 +31,8 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   ctx.lineJoin = 'round'
   ctx.beginPath()
 
-  for (let i = 0; i <= segmentsToDraw && i < totalSegments; i++) {
+  // Only draw completed segments
+  for (let i = 0; i < completedSegments; i++) {
     const startAngle = (i / totalSegments) * Math.PI * 2
     const endAngle = ((i + 1) / totalSegments) * Math.PI * 2
     const x1 = cx + r * Math.cos(startAngle)
@@ -45,38 +46,40 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
     ctx.lineTo(x2, y2)
   }
 
-  // Draw partial segment for current progress
-  if (segmentsToDraw < totalSegments) {
-    const currentAngle = (segmentsToDraw / totalSegments) * Math.PI * 2
-    const nextAngle = ((segmentsToDraw + 1) / totalSegments) * Math.PI * 2
-    const partialAngle = currentAngle + (nextAngle - currentAngle) * segmentProgress
-
-    const startX = cx + r * Math.cos(currentAngle)
-    const startY = cy + r * Math.sin(currentAngle)
-    const endX = cx + r * Math.cos(partialAngle)
-    const endY = cy + r * Math.sin(partialAngle)
-
-    if (segmentsToDraw === 0) {
-      ctx.moveTo(startX, startY)
-    }
-    ctx.lineTo(endX, endY)
-  }
-
   ctx.stroke()
 
-  // Draw the current drawing point
-  const pointAngle = segmentsToDraw < totalSegments
-    ? (segmentsToDraw / totalSegments) * Math.PI * 2 + (1 / totalSegments) * Math.PI * 2 * segmentProgress
-    : (segmentsToDraw / totalSegments) * Math.PI * 2
+  // Draw line from last completed segment to the current dot position
+  if (completedSegments < totalSegments) {
+    const lastCompletedAngle = (completedSegments / totalSegments) * Math.PI * 2
+    const lastX = cx + r * Math.cos(lastCompletedAngle)
+    const lastY = cy + r * Math.sin(lastCompletedAngle)
+    const currentSegmentEnd = ((completedSegments + 1) / totalSegments) * Math.PI * 2
+    const pointAngle = lastCompletedAngle + (currentSegmentEnd - lastCompletedAngle) * segmentProgress
+    const dotX = cx + r * Math.cos(pointAngle)
+    const dotY = cy + r * Math.sin(pointAngle)
+
+    ctx.strokeStyle = C_AMBER
+    ctx.lineWidth = 2.5
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(lastX, lastY)
+    ctx.lineTo(dotX, dotY)
+    ctx.stroke()
+  }
+
+  // Draw the current drawing point (moving ahead of the drawn segments)
+  const currentSegmentStart = (completedSegments / totalSegments) * Math.PI * 2
+  const currentSegmentEnd = ((completedSegments + 1) / totalSegments) * Math.PI * 2
+  const pointAngle = currentSegmentStart + (currentSegmentEnd - currentSegmentStart) * segmentProgress
 
   ctx.fillStyle = C_AMBER_BRIGHT
   ctx.beginPath()
   ctx.arc(cx + r * Math.cos(pointAngle), cy + r * Math.sin(pointAngle), 4, 0, Math.PI * 2)
   ctx.fill()
 
-  // Draw segment dots at vertices
+  // Draw segment dots at completed vertices
   ctx.fillStyle = C_DRAWN
-  for (let i = 0; i < segmentsToDraw && i < totalSegments; i++) {
+  for (let i = 0; i <= completedSegments && i < totalSegments; i++) {
     const angle = (i / totalSegments) * Math.PI * 2
     ctx.beginPath()
     ctx.arc(cx + r * Math.cos(angle), cy + r * Math.sin(angle), 2.5, 0, Math.PI * 2)
@@ -86,7 +89,7 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   ctx.fillStyle = C_TEXT_MUTED
   ctx.font = '12px monospace'
   ctx.textAlign = 'center'
-  ctx.fillText('π = C/d', s / 2, s - 8)
+  ctx.fillText('π = C/d', s / 2, 3 * s / 4)
 }
 
 // ─── State ───────────────────────────────────────────────────────────────────
