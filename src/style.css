@@ -154,18 +154,7 @@ html, body {
   border-left-color: var(--amber);
 }
 
-.nav-index {
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  min-width: 22px;
-  transition: color 0.15s;
-}
 
-.nav-link.active .nav-index {
-  color: var(--amber-dim);
-}
 
 .nav-label {
   font-size: 0.8rem;
@@ -511,14 +500,6 @@ canvas {
   min-width: 0;
 }
 
-.method-card-index {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--amber-dim);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
 
 .method-card-title {
   font-family: var(--font-display);
