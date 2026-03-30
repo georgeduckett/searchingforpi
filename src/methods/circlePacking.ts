@@ -9,25 +9,65 @@ const MAX_RADIUS = 25
 const ATTEMPTS_PER_CIRCLE = 100
 
 // ─── Preview Renderer ────────────────────────────────────────────────────────
-export function drawPreview(ctx: CanvasRenderingContext2D, _time: number): void {
+let previewCircles: { x: number; y: number; r: number }[] | null = null
+let previewLastRegen = -1
+
+export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   const s = PREVIEW_SIZE
+  const padding = 8
+  const minR = 4
+  const maxR = 10
+
+  // Regenerate circles every 3 seconds
+  const regenIndex = Math.floor(time / 3)
+  if (regenIndex !== previewLastRegen || !previewCircles) {
+    previewLastRegen = regenIndex
+    const tempCircles: { x: number; y: number; r: number }[] = []
+
+    // Try to place circles using collision detection
+    for (let attempt = 0; attempt < 150 && tempCircles.length < 25; attempt++) {
+      const r = minR + Math.random() * (maxR - minR)
+      const x = padding + r + Math.random() * (s - 2 * padding - 2 * r)
+      const y = padding + r + Math.random() * (s - 2 * padding - 2 * r)
+
+      // Check for overlap with existing circles
+      let overlaps = false
+      for (const c of tempCircles) {
+        const dx = x - c.x
+        const dy = y - c.y
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < r + c.r + 1) {
+          overlaps = true
+          break
+        }
+      }
+
+      if (!overlaps) {
+        tempCircles.push({ x, y, r })
+      }
+    }
+
+    previewCircles = tempCircles
+  }
+
+  // Draw background
   ctx.fillStyle = C_BG
   ctx.fillRect(0, 0, s, s)
 
-  for (let i = 0; i < 20; i++) {
-    const x = 15 + (Math.sin(i * 2.3) * 0.5 + 0.5) * (s - 30)
-    const y = 15 + (Math.cos(i * 1.9) * 0.5 + 0.5) * (s - 30)
-    const r = 5 + (Math.sin(i * 3.1) * 0.5 + 0.5) * 12
+  // Draw packed circles
+  for (const circle of previewCircles) {
+    ctx.fillStyle = C_INSIDE
+    ctx.globalAlpha = 0.3
+    ctx.beginPath()
+    ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2)
+    ctx.fill()
+
     ctx.strokeStyle = C_INSIDE
     ctx.lineWidth = 1
-    ctx.globalAlpha = 0.6
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.globalAlpha = 0.8
     ctx.stroke()
-    ctx.fillStyle = C_INSIDE
-    ctx.globalAlpha = 0.2
-    ctx.fill()
   }
+
   ctx.globalAlpha = 1
 }
 
