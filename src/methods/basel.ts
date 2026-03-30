@@ -62,19 +62,46 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
     y += size
   }
 
-  // Draw limit indicator on the right
-  const limit = Math.PI * Math.PI / 6 // ~1.6449
-  const sumHeight = limit * scaleFactor * 0.95 // Approximate max height
-  const limitY = s / 2 - sumHeight / 2
+  // Calculate current pi estimate and convergence progress
+  let currentSum = 0
+  for (let n = 1; n <= termsShown; n++) {
+    currentSum += 1 / (n * n)
+  }
+  const piEstimate = Math.sqrt(6 * currentSum)
+  // Progress: how close are we to π? (starts around 2.45 with n=1, converges to π)
+  const initialEstimate = Math.sqrt(6) // n=1
+  const maxError = Math.abs(initialEstimate - Math.PI)
+  const currentError = Math.abs(piEstimate - Math.PI)
+  const convergence = Math.max(0, Math.min(1, 1 - currentError / maxError))
 
-  ctx.strokeStyle = C_AMBER
+  // Draw π progress indicator on the right side
+  const cx = s - 22
+  const cy = s / 2
+  const radius = 16
+
+  // Background circle
+  ctx.strokeStyle = C_TEXT_MUTED
   ctx.lineWidth = 2
-  ctx.setLineDash([4, 4])
   ctx.beginPath()
-  ctx.moveTo(s - 18, limitY)
-  ctx.lineTo(s - 18, limitY + sumHeight)
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
   ctx.stroke()
-  ctx.setLineDash([])
+
+  // Progress arc (fills as we approach π)
+  if (termsShown > 0) {
+    ctx.strokeStyle = C_AMBER
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + convergence * Math.PI * 2)
+    ctx.stroke()
+  }
+
+  // π symbol in center
+  ctx.fillStyle = termsShown > 0 ? C_AMBER : C_TEXT_MUTED
+  ctx.font = 'bold 12px monospace'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('π', cx, cy)
+  ctx.textBaseline = 'alphabetic'
 
   // Formula text at top
   ctx.fillStyle = C_AMBER
@@ -150,18 +177,41 @@ export function createBaselPage(): Page {
       y += size
     }
 
-    // Draw limit indicator on the right
-    const sumHeight = limit * scaleFactor * 0.95
-    const limitY = H / 2 - sumHeight / 2
+    // Calculate current pi estimate and convergence progress
+    const piEstimate = state.terms > 0 ? Math.sqrt(6 * state.sum) : 0
+    const initialEstimate = Math.sqrt(6) // n=1
+    const maxError = Math.abs(initialEstimate - Math.PI)
+    const currentError = state.terms > 0 ? Math.abs(piEstimate - Math.PI) : maxError
+    const progress = state.terms > 0 ? Math.max(0, Math.min(1, 1 - currentError / maxError)) : 0
 
-    ctx.strokeStyle = C_AMBER
+    // Draw π progress indicator on the right side
+    const cx = W - 40
+    const cy = H / 2
+    const radius = 28
+
+    // Background circle
+    ctx.strokeStyle = C_TEXT_MUTED
     ctx.lineWidth = 2
-    ctx.setLineDash([4, 4])
     ctx.beginPath()
-    ctx.moveTo(W - 18, limitY)
-    ctx.lineTo(W - 18, limitY + sumHeight)
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2)
     ctx.stroke()
-    ctx.setLineDash([])
+
+    // Progress arc (fills as we approach π)
+    if (state.terms > 0) {
+      ctx.strokeStyle = C_AMBER
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2)
+      ctx.stroke()
+    }
+
+    // π symbol in center
+    ctx.fillStyle = state.terms > 0 ? C_AMBER : C_TEXT_MUTED
+    ctx.font = 'bold 20px "JetBrains Mono", monospace'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('π', cx, cy)
+    ctx.textBaseline = 'alphabetic'
 
     // Formula text at top
     ctx.fillStyle = C_AMBER
