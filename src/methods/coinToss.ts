@@ -15,23 +15,88 @@ const C_TARGET = C_AMBER
 const C_TEXT = C_TEXT_MUTED
 
 // ─── Preview Renderer ────────────────────────────────────────────────────────
-export function drawPreview(ctx: CanvasRenderingContext2D, _time: number): void {
+export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   const s = PREVIEW_SIZE
   ctx.fillStyle = C_BG
   ctx.fillRect(0, 0, s, s)
 
-  for (let i = 0; i < 8; i++) {
-    const x = 15 + (i % 4) * 30
-    const y = 25 + Math.floor(i / 4) * 50
-    const heads = Math.sin(i * 5.7) > 0
-    ctx.fillStyle = heads ? C_INSIDE : C_OUTSIDE
-    ctx.beginPath()
-    ctx.arc(x, y, 10, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = C_BG
-    ctx.font = 'bold 10px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText(heads ? 'H' : 'T', x, y + 4)
+  const possibleCoinSequences = [
+    [true],
+    [false, true, true],
+    [false, true, false, true, true],
+    [false, false, true, true, true],
+    [false, true, false, true, false, true, true],
+    [false, false, true, false, true, true, true],
+    [false, false, false, true, true, true, true],
+  ]
+
+  const coinSequences = 6
+  // Animation timing
+  const coinsPerSecond = 5
+  const pauseDuration = 1.5
+
+  // Calculate cycle duration based on worst case
+  const maxTotalCoins = coinSequences * possibleCoinSequences.reduce((max, seq) => Math.max(max, seq.length), 0)
+  const cycleDuration = (maxTotalCoins / coinsPerSecond) + pauseDuration
+
+  // Use time to determine cycle - each cycle gets different random sequences
+  const cycleIndex = Math.floor(time / cycleDuration)
+  const cycleTime = time % cycleDuration
+
+  // Seeded random for consistent picks per cycle
+  const seed = (cycleIndex * 7919 + 104729) % 1000000
+  const seededRandom = (idx: number) => Math.abs(Math.sin(seed * (idx + 1) * 0.001) * 10000) % 1
+
+  // Pick coinSequences sequences randomly from the predefined list
+  const sequences: boolean[][] = []
+  for (let i = 0; i < coinSequences; i++) {
+    const pickIndex = Math.floor(seededRandom(i) * possibleCoinSequences.length)
+    sequences.push(possibleCoinSequences[pickIndex])
+  }
+
+  const totalCoins = sequences.reduce((sum, seq) => sum + seq.length, 0)
+  const animationDuration = totalCoins / coinsPerSecond
+
+  // During pause, show all coins; then restart
+  let visibleCoins: number
+  if (cycleTime < animationDuration) {
+    // Animating - show coins one by one
+    visibleCoins = Math.floor(cycleTime * coinsPerSecond)
+  } else if (cycleTime < animationDuration + pauseDuration) {
+    // Pause - show all coins
+    visibleCoins = totalCoins
+  } else {
+    // Restart
+    visibleCoins = 0
+  }
+  visibleCoins = Math.min(visibleCoins, totalCoins)
+
+  const coinRadius = 7
+  const coinSpacing = 16
+  const rowHeight = 22
+  const startY = 14
+
+  let coinIndex = 0
+  for (let row = 0; row < sequences.length; row++) {
+    const seq = sequences[row]
+    const y = startY + row * rowHeight
+
+    for (let col = 0; col < seq.length; col++) {
+      if (coinIndex >= visibleCoins) break
+
+      const x = 12 + col * coinSpacing
+      const isHead = seq[col]
+      ctx.fillStyle = isHead ? C_INSIDE : C_OUTSIDE
+      ctx.beginPath()
+      ctx.arc(x, y, coinRadius, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = C_BG
+      ctx.font = 'bold 8px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(isHead ? 'H' : 'T', x, y + 3)
+
+      coinIndex++
+    }
   }
 }
 
