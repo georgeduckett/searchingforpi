@@ -49,8 +49,8 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
 
   const coinSequences = 6
   // Animation timing
-  const coinsPerSecond = 5
-  const pauseDuration = 1.5
+  const coinsPerSecond = 2
+  const pauseDuration = 0.1
 
   // Calculate cycle duration based on worst case
   const maxTotalCoins = coinSequences * possibleCoinSequences.reduce((max, seq) => Math.max(max, seq.length), 0)
@@ -79,12 +79,9 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   if (cycleTime < animationDuration) {
     // Animating - show coins one by one
     visibleCoins = Math.floor(cycleTime * coinsPerSecond)
-  } else if (cycleTime < animationDuration + pauseDuration) {
-    // Pause - show all coins
-    visibleCoins = totalCoins
   } else {
-    // Restart
-    visibleCoins = 0
+    // Pause or between cycles - keep showing all coins
+    visibleCoins = totalCoins
   }
   visibleCoins = Math.min(visibleCoins, totalCoins)
 
