@@ -20,15 +20,32 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   ctx.fillStyle = C_BG
   ctx.fillRect(0, 0, s, s)
 
-  const possibleCoinSequences = [
-    [true],
-    [false, true, true],
-    [false, true, false, true, true],
-    [false, false, true, true, true],
-    [false, true, false, true, false, true, true],
-    [false, false, true, false, true, true, true],
-    [false, false, false, true, true, true, true],
-  ]
+  // Generate all valid coin toss sequences up to 8 coins
+  // A valid sequence ends when heads > tails, and at no point before did heads > tails
+  const possibleCoinSequences: boolean[][] = []
+  const maxTosses = 8
+
+  function generateSequences(seq: boolean[], heads: number, tails: number): void {
+    // If heads > tails, we have a winning sequence
+    if (heads > tails && seq.length > 0) {
+      possibleCoinSequences.push([...seq])
+      return
+    }
+    // Stop if we've reached max length
+    if (seq.length >= maxTosses) return
+
+    // Add a tail (false) - we can always add tails when heads <= tails
+    seq.push(false)
+    generateSequences(seq, heads, tails + 1)
+    seq.pop()
+
+    // Add a head (true) - only if adding it wouldn't make us stop earlier
+    seq.push(true)
+    generateSequences(seq, heads + 1, tails)
+    seq.pop()
+  }
+
+  generateSequences([], 0, 0)
 
   const coinSequences = 6
   // Animation timing
