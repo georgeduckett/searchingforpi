@@ -145,7 +145,6 @@ export function createBaselPage(): Page {
     ctx.fillRect(0, 0, W, H)
 
     // Calculate scale so all squares fit
-    const limit = Math.PI * Math.PI / 6
     const maxSquareSize = Math.min(W, H) * 0.5
     const scaleFactor = maxSquareSize
 
