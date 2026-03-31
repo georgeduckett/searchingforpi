@@ -5,7 +5,6 @@ import { C_BG, C_INSIDE, C_AMBER, C_TEXT_MUTED, C_OUTSIDE, PREVIEW_SIZE } from '
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 560
 const CANVAS_H = 320
-const SEQUENCES_PER_TICK = 10
 const MAX_SEQUENCES = 10_000
 const MAX_GRID_COLS = 20
 const MAX_GRID_ROWS = 10
@@ -47,8 +46,6 @@ interface Sequence {
 interface State {
   sequences: Sequence[]
   sumRatios: number
-  running: boolean
-  rafId: number | null
   sequenceBatch: Sequence[]
   currentSequence: Sequence | null
   autoAdding: boolean
@@ -133,8 +130,6 @@ export function createCoinTossPage(): Page {
   const state: State = {
     sequences: [],
     sumRatios: 0,
-    running: false,
-    rafId: null,
     sequenceBatch: [],
     currentSequence: null,
     autoAdding: false,
@@ -251,13 +246,16 @@ export function createCoinTossPage(): Page {
     }
   }
 
-  // ── Add sequences ──────────────────────────────────────────────────────────
-  function addSequences(count: number): void {
-    for (let i = 0; i < count; i++) {
-      const seq = simulateSequence()
-      state.sequences.push(seq)
-      state.sumRatios += seq.ratio
+  function addOneSequence(): void {
+    if (state.sequences.length >= MAX_SEQUENCES) return
+    const seq = simulateSequence()
+    state.sequences.push(seq)
+    state.sumRatios += seq.ratio
+    state.sequenceBatch.push(seq)
+    if (state.sequenceBatch.length > MAX_GRID_ROWS) {
+      state.sequenceBatch.shift()
     }
+    updateStats()
   }
 
   const STEP_FRAME_DELAY = 80
@@ -270,6 +268,7 @@ export function createCoinTossPage(): Page {
     }
     btnStep.textContent = 'Show'
     btnStart.disabled = false
+    btnStart.textContent = 'Start'
   }
 
   function animateStep(): void {
@@ -277,6 +276,8 @@ export function createCoinTossPage(): Page {
       state.currentSequence = null
       btnStep.disabled = false
       btnStart.disabled = false
+      btnStart.textContent = 'Start'
+      btnStep.textContent = 'Show'
       return
     }
 
@@ -328,39 +329,18 @@ export function createCoinTossPage(): Page {
     draw()
   }
 
-  // ── Animation ──────────────────────────────────────────────────────────────
-  function tick(): void {
-    if (!state.running) return
-    if (state.sequences.length >= MAX_SEQUENCES) {
-      stop()
-      btnStart.textContent = 'Done'
-      btnStart.disabled = true
-      return
-    }
-    const batch = Math.min(SEQUENCES_PER_TICK, MAX_SEQUENCES - state.sequences.length)
-    addSequences(batch)
-    updateStats()
-    state.rafId = requestAnimationFrame(tick)
-  }
-
-  function start(): void {
+  function startShowing(): void {
     if (state.autoAdding) return
-    state.running = true
-    btnStart.disabled = true
-    btnStart.textContent = 'Running…'
-    btnReset.disabled = false
+    state.autoAdding = true
+    btnStart.textContent = 'Pause'
     btnStep.disabled = true
-    state.rafId = requestAnimationFrame(tick)
-  }
-
-  function stop(): void {
-    state.running = false
-    if (state.rafId !== null) cancelAnimationFrame(state.rafId)
-    stopAutoAdd()
+    btnReset.disabled = false
+    state.currentSequence = createEmptySequence()
+    animateStep()
   }
 
   function reset(): void {
-    stop()
+    stopAutoAdd()
     state.sequences = []
     state.sumRatios = 0
     state.sequenceBatch = []
@@ -438,8 +418,8 @@ export function createCoinTossPage(): Page {
               to total flips approaches π/4.
             </p>
             <p>
-              Press <em>Show</em> to watch individual sequences,
-              or use <em>Start</em> for faster graph-only run.
+              Press <em>Start</em> to watch sequences build step-by-step,
+              or use <em>Show</em> to add individual sequences instantly.
             </p>
           </div>
         </div>
@@ -460,12 +440,6 @@ export function createCoinTossPage(): Page {
     draw()
 
     btnStart.addEventListener('click', () => {
-      if (state.sequences.length >= MAX_SEQUENCES) reset()
-      start()
-    })
-    btnStep.addEventListener('click', () => {
-      if (state.running) return
-
       if (state.autoAdding) {
         stopAutoAdd()
         return
@@ -476,12 +450,18 @@ export function createCoinTossPage(): Page {
         return
       }
 
-      state.autoAdding = true
-      btnStep.textContent = 'Pause'
-      btnStart.disabled = true
+      startShowing()
+    })
+    btnStep.addEventListener('click', () => {
+      if (state.autoAdding) return
+
+      if (state.sequences.length >= MAX_SEQUENCES) {
+        reset()
+        return
+      }
+
+      addOneSequence()
       btnReset.disabled = false
-      state.currentSequence = createEmptySequence()
-      animateStep()
     })
     btnReset.addEventListener('click', reset)
 
@@ -489,7 +469,7 @@ export function createCoinTossPage(): Page {
   }
 
   function cleanup(): void {
-    stop()
+    stopAutoAdd()
   }
 
   return { render, cleanup }
