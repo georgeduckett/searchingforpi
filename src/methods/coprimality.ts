@@ -1,5 +1,5 @@
 import type { Page } from '../router'
-import { fmt, queryRequired } from '../utils'
+import { fmt, queryRequired, isCoprime } from '../utils'
 import { C_BG, C_INSIDE, C_OUTSIDE, C_TEXT_MUTED, C_AMBER, CANVAS_SIZE, PREVIEW_SIZE } from '../colors'
 import { clearCanvas } from './base/canvas'
 
@@ -49,20 +49,6 @@ interface State {
   totalPairs: number
   running: boolean
   rafId: number | null
-}
-
-// ─── GCD (Euclidean algorithm) ───────────────────────────────────────────────
-function gcd(a: number, b: number): number {
-  while (b !== 0) {
-    const t = b
-    b = a % b
-    a = t
-  }
-  return a
-}
-
-function isCoprime(a: number, b: number): boolean {
-  return gcd(a, b) === 1
 }
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import type { Page } from '../router'
 import { queryRequired } from '../utils'
 import { C_BG, C_GRID, C_INSIDE, C_OUTSIDE, C_AMBER, C_TEXT_MUTED, C_BORDER, PREVIEW_SIZE } from '../colors'
-import { clearCanvas, drawLine } from './base/canvas'
+import { clearCanvas, drawLine, drawDashedLine } from './base/canvas'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 560
@@ -142,15 +142,8 @@ export function createLeibnizPage(): Page {
     ctx.stroke()
 
     // True π line
-    ctx.strokeStyle = C_AMBER
     ctx.globalAlpha = 0.2
-    ctx.lineWidth = 1
-    ctx.setLineDash([6, 4])
-    ctx.beginPath()
-    ctx.moveTo(0, midY)
-    ctx.lineTo(W, midY)
-    ctx.stroke()
-    ctx.setLineDash([])
+    drawDashedLine(ctx, 0, midY, W, midY, C_AMBER, 1, [6, 4])
     ctx.globalAlpha = 1
 
     // Axis labels

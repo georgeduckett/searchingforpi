@@ -1,7 +1,7 @@
 import type { Page } from '../router'
 import { fmt, queryRequired } from '../utils'
 import { C_BG, C_INSIDE, C_OUTSIDE, C_AMBER, C_TEXT_MUTED, CANVAS_SIZE, PREVIEW_SIZE } from '../colors'
-import { clearCanvas } from './base/canvas'
+import { clearCanvas, drawDashedLine, drawText } from './base/canvas'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const MAX_FACTORS = 200
@@ -95,19 +95,10 @@ export function createWallisPage(): Page {
 
     // π/2 reference line
     const piY = baseY - target * scale
-    ctx.strokeStyle = C_AMBER
-    ctx.lineWidth = 2
-    ctx.setLineDash([8, 4])
-    ctx.beginPath()
-    ctx.moveTo(pad, piY)
-    ctx.lineTo(W - pad, piY)
-    ctx.stroke()
-    ctx.setLineDash([])
-
+    drawDashedLine(ctx, pad, piY, W - pad, piY, C_AMBER, 2, [8, 4])
+  
     // Label
-    ctx.fillStyle = C_TEXT_MUTED
-    ctx.font = '11px "JetBrains Mono", monospace'
-    ctx.fillText('π/2 ≈ 1.5708', W - pad - 80, piY - 5)
+    drawText(ctx, 'π/2 ≈ 1.5708', W - pad - 80, piY - 5, C_TEXT_MUTED, '11px "JetBrains Mono", monospace')
 
     // Draw bars showing deviation at each factor step
     if (state.factors > 0) {
