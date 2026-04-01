@@ -130,29 +130,31 @@ export function createBuffonPage(): Page {
     }
   }
 
-  function drawNeedle(n: Needle): void {
+  function drawNeedle(n: Needle, isAnimating: boolean = false): void {
     const scale = n.scale || 1
     const length = NEEDLE_LENGTH * scale
     const dx = (length / 2) * Math.cos(n.angle)
     const dy = (length / 2) * Math.sin(n.angle)
-
-    ctx.strokeStyle = n.crosses ? C_CROSS : C_NO_CROSS
-    ctx.lineWidth = n.crosses ? 1.8 : 1
-    ctx.globalAlpha = n.crosses ? 0.85 : 0.45
+  
+    // During animation, always use neutral color; only show cross status when settled
+    const showCrossColor = !isAnimating && n.crosses
+    ctx.strokeStyle = showCrossColor ? C_CROSS : C_NO_CROSS
+    ctx.lineWidth = showCrossColor ? 1.8 : 1
+    ctx.globalAlpha = showCrossColor ? 0.85 : 0.45
     ctx.beginPath()
     ctx.moveTo(n.cx - dx, n.cy - dy)
     ctx.lineTo(n.cx + dx, n.cy + dy)
     ctx.stroke()
-
-    // Small dot at centre for crossing needles
-    if (n.crosses) {
+  
+    // Small dot at centre for crossing needles (only when settled)
+    if (showCrossColor) {
       ctx.globalAlpha = 1
       ctx.fillStyle = C_CROSS_DOT
       ctx.beginPath()
       ctx.arc(n.cx, n.cy, 2 * scale, 0, Math.PI * 2)
       ctx.fill()
     }
-
+  
     ctx.globalAlpha = 1
   }
 
@@ -160,7 +162,7 @@ export function createBuffonPage(): Page {
     drawBackground()
     for (const n of state.needles) drawNeedle(n)
     if (state.animating && state.currentNeedle) {
-      drawNeedle(state.currentNeedle)
+      drawNeedle(state.currentNeedle, true)
     }
   }
 
@@ -223,6 +225,7 @@ export function createBuffonPage(): Page {
       if (state.currentNeedle.crosses) state.crosses++
       state.animating = false
       state.currentNeedle = null
+      drawBackground_and_needles()
       updateStats()
       btnStep.disabled = false
     }
