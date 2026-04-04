@@ -8,6 +8,8 @@ import { getMethodIndex } from './definitions'
 const CANVAS_W = 810
 const CANVAS_H = 240
 const BOX_SIZE = 20
+const BOX2_MIN_SIZE = 20
+const BOX2_MAX_SIZE = 60
 const WALL_X = 50
 const INITIAL_X1 = WALL_X + CANVAS_W / 3
 const INITIAL_X2 = (CANVAS_W / 3) * 2
@@ -87,6 +89,16 @@ function resetState(state: State): void {
   state.time = 0
 }
 
+function getBox2Size(m2: number): number {
+  // Scale box size based on mass: use cube root for volume-like scaling
+  // m2 ranges from 1 (k=0) to 100,000,000 (k=4)
+  // Map to size range [BOX2_MIN_SIZE, BOX2_MAX_SIZE]
+  const minMass = 1
+  const maxMass = 100_000_000
+  const t = (Math.log10(m2) - Math.log10(minMass)) / (Math.log10(maxMass) - Math.log10(minMass))
+  return BOX2_MIN_SIZE + t * (BOX2_MAX_SIZE - BOX2_MIN_SIZE)
+}
+
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export function createBouncingBoxesPage(): Page {
   const state: State = createInitialState()
@@ -155,12 +167,14 @@ export function createBouncingBoxesPage(): Page {
     ctx.stroke()
 
     // Boxes
+    const box2Size = getBox2Size(state.m2)
+    
     ctx.fillStyle = C_BOX1
     ctx.fillRect(state.smallBoxX - BOX_SIZE / 2, CANVAS_H / 2 - BOX_SIZE / 2, BOX_SIZE, BOX_SIZE)
-
+  
     ctx.fillStyle = C_BOX2
-    ctx.fillRect(state.largeBoxX - BOX_SIZE / 2, CANVAS_H / 2 - BOX_SIZE / 2, BOX_SIZE, BOX_SIZE)
-
+    ctx.fillRect(state.largeBoxX - box2Size / 2, CANVAS_H / 2 - box2Size / 2, box2Size, box2Size)
+  
     // Labels
     ctx.fillStyle = C_TEXT
     ctx.font = '12px monospace'
@@ -171,11 +185,12 @@ export function createBouncingBoxesPage(): Page {
   // ── Physics ────────────────────────────────────────────────────────────────
   function getTimeToCollision(): { type: 'box' | 'wall' | 'none'; time: number } {
     const EPSILON = 1e-6
+    const box2Size = getBox2Size(state.m2)
 
     let timeToBoxCollision = Infinity
     if (state.smallBoxV > state.largeBoxV) {
       const relVelocity = state.smallBoxV - state.largeBoxV
-      const gap = (state.largeBoxX - BOX_SIZE / 2) - (state.smallBoxX + BOX_SIZE / 2)
+      const gap = (state.largeBoxX - box2Size / 2) - (state.smallBoxX + BOX_SIZE / 2)
       if (gap > -EPSILON) {
         timeToBoxCollision = gap / relVelocity
       }
@@ -241,8 +256,9 @@ export function createBouncingBoxesPage(): Page {
   }
 
   function isSimulationComplete(): boolean {
+    const box2Size = getBox2Size(state.m2)
     const boxesSeparated = state.largeBoxV > state.smallBoxV && state.smallBoxV >= 0
-    const gapLargeEnough = state.largeBoxX - state.smallBoxX > 5 * BOX_SIZE
+    const gapLargeEnough = state.largeBoxX - state.smallBoxX > 5 * Math.max(BOX_SIZE, box2Size)
     const smallBoxAwayFromWall = state.smallBoxX - BOX_SIZE / 2 > WALL_X + 5 * BOX_SIZE
     return boxesSeparated && gapLargeEnough && smallBoxAwayFromWall
   }
