@@ -1,7 +1,14 @@
 import { fmt } from '../utils'
 import { C_INSIDE, C_OUTSIDE, C_AMBER, CANVAS_SIZE, PREVIEW_SIZE } from '../colors'
 import { clearCanvas, drawGrid, drawCircle, isInsideCircle, fillCircle } from './base/canvas'
-import { createMethodPageFactory, statCard, legend, explanation } from './base/page'
+import {
+  createMethodPageFactory,
+  createFrameAnimation,
+  cancelAnimations,
+  statCard,
+  legend,
+  explanation,
+} from './base/page'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const DOTS_PER_TICK = 30
@@ -36,6 +43,7 @@ interface State {
   total: number
   running: boolean
   rafId: number | null
+  intervalId: ReturnType<typeof setInterval> | null // For AnimationState compatibility
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -75,11 +83,12 @@ export const createMonteCarloPage = createMethodPageFactory<State>(
     total: 0,
     running: false,
     rafId: null,
+    intervalId: null,
   },
   {
     init(ctx) {
       const { ctx: ctx2d, state, $id } = ctx
-      
+
       // Get button references
       const btnStart = $id('btn-start', HTMLButtonElement)
       const btnStep = $id('btn-step', HTMLButtonElement)
@@ -91,6 +100,25 @@ export const createMonteCarloPage = createMethodPageFactory<State>(
 
       // Draw initial background
       drawBackground(ctx2d)
+
+      // Create animation loop using the helper
+      const animation = createFrameAnimation(ctx, {
+        update(state, _dt) {
+          if (state.total >= MAX_DOTS) {
+            state.running = false
+            return
+          }
+          addDots(ctx2d, state, Math.min(DOTS_PER_TICK, MAX_DOTS - state.total))
+        },
+        draw(_ctx) {
+          updateStats(state, elEstimate, elTotal, elError, elProgress)
+        },
+        isRunning: (state) => state.running,
+        onComplete() {
+          btnStart.textContent = 'Restart'
+          btnStart.disabled = false
+        },
+      })
 
       // Wire up buttons
       btnStart.addEventListener('click', () => {
@@ -146,35 +174,21 @@ export const createMonteCarloPage = createMethodPageFactory<State>(
         prog.style.width = `${pct}%`
       }
 
-      function tick(): void {
-        if (!state.running) return
-        if (state.total >= MAX_DOTS) {
-          state.running = false
-          btnStart.textContent = 'Restart'
-          btnStart.disabled = false
-          return
-        }
-        addDots(ctx2d, state, Math.min(DOTS_PER_TICK, MAX_DOTS - state.total))
-        updateStats(state, elEstimate, elTotal, elError, elProgress)
-        state.rafId = requestAnimationFrame(tick)
-      }
-
       function start(): void {
         state.running = true
         btnStart.disabled = true
         btnStart.textContent = 'Running…'
         btnReset.disabled = false
-        state.rafId = requestAnimationFrame(tick)
+        animation.start()
+        // Store the animation frame ID for cleanup
+        state.rafId = animation.getFrameId()
       }
 
       function resetState(): void {
-        state.running = false
-        if (state.rafId !== null) {
-          cancelAnimationFrame(state.rafId)
-          state.rafId = null
-        }
+        animation.stop()
         state.inside = 0
         state.total = 0
+        state.rafId = null
         drawBackground(ctx2d)
         updateStats(state, elEstimate, elTotal, elError, elProgress)
         btnStart.textContent = 'Start'
@@ -188,11 +202,7 @@ export const createMonteCarloPage = createMethodPageFactory<State>(
     },
 
     cleanup(ctx) {
-      ctx.state.running = false
-      if (ctx.state.rafId !== null) {
-        cancelAnimationFrame(ctx.state.rafId)
-        ctx.state.rafId = null
-      }
+      cancelAnimations(ctx.state)
     },
   }
 )

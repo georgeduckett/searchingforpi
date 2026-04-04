@@ -1,6 +1,14 @@
 import { C_BG, C_BORDER, C_TEXT_MUTED, C_AMBER, C_AMBER_BRIGHT, PREVIEW_SIZE } from '../colors'
 import { clearCanvas, drawLine } from './base/canvas'
-import { createMethodPageFactory, statCard, explanation } from './base/page'
+import {
+  createMethodPageFactory,
+  createFrameAnimation,
+  createEasedAnimation,
+  Easing,
+  cancelAnimations,
+  statCard,
+  explanation,
+} from './base/page'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 560
@@ -67,12 +75,13 @@ interface State {
   total: number
   running: boolean
   rafId: number | null
+  intervalId: ReturnType<typeof setInterval> | null // For AnimationState compatibility
   animating: boolean
   currentNeedle: Needle | null
   animationStartY: number
   animationEndY: number
-  animationStartTime: number
   initialAngle: number
+  finalAngle: number
 }
 
 // ─── Maths ───────────────────────────────────────────────────────────────────
@@ -119,12 +128,13 @@ export const createBuffonPage = createMethodPageFactory<State>(
     total: 0,
     running: false,
     rafId: null,
+    intervalId: null,
     animating: false,
     currentNeedle: null,
     animationStartY: 0,
     animationEndY: 0,
-    animationStartTime: 0,
     initialAngle: 0,
+    finalAngle: 0,
   },
   {
     init(ctx) {
@@ -209,6 +219,29 @@ export const createBuffonPage = createMethodPageFactory<State>(
         drawNeedle(needle)
       }
 
+      // Frame-based animation for continuous dropping
+      const continuousAnimation = createFrameAnimation(ctx, {
+        update(state, _dt) {
+          if (state.total >= MAX_NEEDLES) {
+            state.running = false
+            return
+          }
+          const batch = Math.min(NEEDLES_PER_TICK, MAX_NEEDLES - state.total)
+          for (let i = 0; i < batch; i++) dropNeedle()
+        },
+        draw(_ctx) {
+          updateStats()
+        },
+        isRunning: (state) => state.running,
+        onComplete() {
+          btnStart.textContent = 'Done'
+          btnStart.disabled = true
+        },
+      })
+
+      // Eased animation for single needle drop
+      let dropAnimation: ReturnType<typeof createEasedAnimation> | null = null
+
       function startNeedleAnimation(): void {
         if (state.animating) return
         const cx = Math.random() * CANVAS_W
@@ -216,45 +249,45 @@ export const createBuffonPage = createMethodPageFactory<State>(
         const finalAngle = Math.random() * Math.PI
         const crosses = doesCross(finalCy, finalAngle)
         const initialAngle = Math.random() * Math.PI * 2
+
         state.currentNeedle = { cx, cy: finalCy - 80, angle: initialAngle, crosses, scale: 3.0 }
         state.animationStartY = finalCy - 80
         state.animationEndY = finalCy
-        state.animationStartTime = performance.now()
         state.initialAngle = initialAngle
+        state.finalAngle = finalAngle
         state.animating = true
-        animateNeedle(finalAngle)
-      }
 
-      function animateNeedle(finalAngle: number): void {
-        if (!state.animating || !state.currentNeedle) return
+        dropAnimation = createEasedAnimation(ctx, {
+          durationMs: 1000,
+          easing: Easing.easeInCubic,
+          update(state, progress) {
+            if (state.currentNeedle) {
+              state.currentNeedle.cy = state.animationStartY + (state.animationEndY - state.animationStartY) * progress
+              state.currentNeedle.scale = 2.0 - (2.0 - 1.0) * progress
 
-        const elapsed = performance.now() - state.animationStartTime
-        const duration = 1000
-        const progress = Math.min(elapsed / duration, 1)
-        const easeProgress = Math.pow(progress, 3)
-
-        state.currentNeedle.cy = state.animationStartY + (state.animationEndY - state.animationStartY) * easeProgress
-        state.currentNeedle.scale = 2.0 - (2.0 - 1.0) * easeProgress
-
-        const angleDiff = ((finalAngle - state.initialAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
-        state.currentNeedle.angle = state.initialAngle + angleDiff * easeProgress
-
-        drawBackground_and_needles()
-
-        if (progress < 1) {
-          requestAnimationFrame(() => animateNeedle(finalAngle))
-        } else {
-          state.currentNeedle.angle = finalAngle
-          state.currentNeedle.scale = 1.0
-          state.needles.push(state.currentNeedle)
-          state.total++
-          if (state.currentNeedle.crosses) state.crosses++
-          state.animating = false
-          state.currentNeedle = null
-          drawBackground_and_needles()
-          updateStats()
-          btnStep.disabled = false
-        }
+              const angleDiff = ((state.finalAngle - state.initialAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+              state.currentNeedle.angle = state.initialAngle + angleDiff * progress
+            }
+          },
+          draw(_ctx) {
+            drawBackground_and_needles()
+          },
+          onComplete() {
+            if (state.currentNeedle) {
+              state.currentNeedle.angle = state.finalAngle
+              state.currentNeedle.scale = 1.0
+              state.needles.push(state.currentNeedle)
+              state.total++
+              if (state.currentNeedle.crosses) state.crosses++
+            }
+            state.animating = false
+            state.currentNeedle = null
+            drawBackground_and_needles()
+            updateStats()
+            btnStep.disabled = false
+          },
+        })
+        dropAnimation.start()
       }
 
       function updateStats(): void {
@@ -269,40 +302,30 @@ export const createBuffonPage = createMethodPageFactory<State>(
         elProgress.style.width = `${Math.min((state.total / MAX_NEEDLES) * 100, 100)}%`
       }
 
-      function tick(): void {
-        if (!state.running) return
-        if (state.total >= MAX_NEEDLES) {
-          stop()
-          btnStart.textContent = 'Done'
-          btnStart.disabled = true
-          return
-        }
-        const batch = Math.min(NEEDLES_PER_TICK, MAX_NEEDLES - state.total)
-        for (let i = 0; i < batch; i++) dropNeedle()
-        updateStats()
-        state.rafId = requestAnimationFrame(tick)
-      }
-
       function start(): void {
         state.running = true
         btnStart.disabled = true
         btnStart.textContent = 'Running…'
         btnReset.disabled = false
         btnStep.disabled = false
-        state.rafId = requestAnimationFrame(tick)
+        continuousAnimation.start()
+        state.rafId = continuousAnimation.getFrameId()
       }
 
       function stop(): void {
         state.running = false
-        if (state.rafId !== null) { cancelAnimationFrame(state.rafId); state.rafId = null }
+        continuousAnimation.stop()
+        state.rafId = null
         btnStart.disabled = false
         btnStart.textContent = 'Resume'
       }
 
       function reset(): void {
+        continuousAnimation.stop()
+        dropAnimation?.stop()
         state.running = false
-        if (state.rafId !== null) { cancelAnimationFrame(state.rafId); state.rafId = null }
         state.animating = false
+        state.rafId = null
         state.currentNeedle = null
         state.needles = []
         state.crosses = 0
@@ -336,12 +359,8 @@ export const createBuffonPage = createMethodPageFactory<State>(
     },
 
     cleanup(ctx) {
-      ctx.state.running = false
+      cancelAnimations(ctx.state)
       ctx.state.animating = false
-      if (ctx.state.rafId !== null) {
-        cancelAnimationFrame(ctx.state.rafId)
-        ctx.state.rafId = null
-      }
     },
   }
 )

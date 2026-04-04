@@ -1,6 +1,13 @@
 import { C_BG, C_GRID, C_INSIDE, C_OUTSIDE, C_AMBER, C_TEXT_MUTED, C_BORDER, PREVIEW_SIZE } from '../colors'
 import { clearCanvas, drawLine, drawDashedLine } from './base/canvas'
-import { createMethodPageFactory, statCard, legend, explanation } from './base/page'
+import {
+  createMethodPageFactory,
+  createIntervalAnimation,
+  cancelAnimations,
+  statCard,
+  legend,
+  explanation,
+} from './base/page'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CANVAS_W = 560
@@ -45,6 +52,7 @@ interface State {
   running: boolean
   termIndex: number
   intervalId: ReturnType<typeof setInterval> | null
+  rafId: number | null // For AnimationState compatibility
 }
 
 // ─── Leibniz term: (-1)^n / (2n+1) ──────────────────────────────────────────
@@ -92,6 +100,7 @@ export const createLeibnizPage = createMethodPageFactory<State>(
     running: false,
     termIndex: 0,
     intervalId: null,
+    rafId: null,
   },
   {
     init(ctx) {
@@ -105,6 +114,20 @@ export const createLeibnizPage = createMethodPageFactory<State>(
       const elTerms = $id('terms', HTMLElement)
       const elCurrentTerm = $id('current-term', HTMLElement)
       const elError = $id('error', HTMLElement)
+
+      // Create interval animation using the helper
+      const animation = createIntervalAnimation(ctx, {
+        intervalMs: MS_PER_TERM,
+        tick(_ctx) {
+          addTerm()
+        },
+        isRunning: (state) => state.running,
+        onComplete() {
+          btnStart.disabled = false
+          btnStart.textContent = state.termIndex >= MAX_TERMS ? 'Done' : 'Resume'
+          if (state.termIndex >= MAX_TERMS) btnStart.disabled = true
+        },
+      })
 
       // Draw function
       function draw(): void {
@@ -234,15 +257,14 @@ export const createLeibnizPage = createMethodPageFactory<State>(
         btnStep.disabled = false
         btnReset.disabled = false
         btnStart.textContent = 'Running…'
-        state.intervalId = setInterval(addTerm, MS_PER_TERM)
+        animation.start()
+        state.intervalId = animation.getIntervalId()
       }
 
       function stop(): void {
         state.running = false
-        if (state.intervalId !== null) {
-          clearInterval(state.intervalId)
-          state.intervalId = null
-        }
+        animation.stop()
+        state.intervalId = null
         btnStart.disabled = false
         btnStart.textContent = state.termIndex >= MAX_TERMS ? 'Done' : 'Resume'
         if (state.termIndex >= MAX_TERMS) btnStart.disabled = true
@@ -282,11 +304,7 @@ export const createLeibnizPage = createMethodPageFactory<State>(
     },
 
     cleanup(ctx) {
-      if (ctx.state.intervalId !== null) {
-        clearInterval(ctx.state.intervalId)
-        ctx.state.intervalId = null
-      }
-      ctx.state.running = false
+      cancelAnimations(ctx.state)
     },
   }
 )

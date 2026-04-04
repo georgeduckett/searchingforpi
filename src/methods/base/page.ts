@@ -2,8 +2,27 @@
 // Re-exports all types and functions from the split page module files.
 // This file maintains backward compatibility for existing imports.
 
-// Re-export types and functions from split modules
-export { createAnimationLoop, type AnimationOptions, type AnimationLoop } from './animation'
+// Re-export animation helpers
+export {
+  // Frame-based animation
+  createFrameAnimation,
+  type FrameAnimationOptions,
+  type FrameAnimationLoop,
+  // Interval-based animation
+  createIntervalAnimation,
+  type IntervalAnimationOptions,
+  type IntervalAnimationLoop,
+  // Eased one-shot animation
+  createEasedAnimation,
+  type EasedAnimationOptions,
+  // Easing functions
+  Easing,
+  // State helpers
+  type AnimationState,
+  cancelAnimations,
+} from './animation'
+
+// Re-export stats helpers
 export {
   statCard,
   statsRow,
