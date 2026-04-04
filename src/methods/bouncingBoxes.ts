@@ -390,11 +390,11 @@ export function createBouncingBoxesPage(): Page {
     </div>
     <div style="margin-top:14px" class="controls">
       <select id="bb-k" class="control-select">
-        <option value="0">k=0 (1 digit)</option>
-        <option value="1">k=1 (2 digits)</option>
-        <option value="2">k=2 (3 digits)</option>
-        <option value="3">k=3 (4 digits)</option>
-        <option value="4">k=4 (5 digits)</option>
+        <option value="0">k=0</option>
+        <option value="1">k=1</option>
+        <option value="2">k=2</option>
+        <option value="3">k=3</option>
+        <option value="4">k=4</option>
       </select>
       <button id="bb-start" class="btn primary">Start</button>
       <button id="bb-reset" class="btn">Reset</button>
