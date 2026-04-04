@@ -633,7 +633,45 @@ canvas {
     font-style: italic;
     font-weight: 300;
   }
-
+  
+  /* ── Mobile nav buttons (prev/next) ── */
+  .mobile-nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+  
+  .mobile-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+  
+  .mobile-nav-btn:hover:not(:disabled) {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+  }
+  
+  .mobile-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  
+  .mobile-nav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
   /* ── Hamburger button ── */
   #hamburger {
     display: flex;

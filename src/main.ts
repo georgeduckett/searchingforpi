@@ -1,5 +1,5 @@
 import './style.css'
-import { initRouter, registerPage } from './router'
+import { initRouter, registerPage, hasPrevPage, hasNextPage, navigateToPrev, navigateToNext } from './router'
 import { allPages, pageFactories } from './methods/definitions'
 
 // ─── Register pages ───────────────────────────────────────────────────────────
@@ -93,5 +93,36 @@ if (themeToggle) {
  })
 }
 
+// ─── Mobile page navigation (prev/next buttons) ───────────────────────────────
+const navPrevBtn = document.getElementById('nav-prev') as HTMLButtonElement
+const navNextBtn = document.getElementById('nav-next') as HTMLButtonElement
+
+function updateNavButtons(): void {
+  if (navPrevBtn) {
+    navPrevBtn.disabled = !hasPrevPage()
+  }
+  if (navNextBtn) {
+    navNextBtn.disabled = !hasNextPage()
+  }
+}
+
+if (navPrevBtn) {
+  navPrevBtn.addEventListener('click', () => {
+    navigateToPrev()
+  })
+}
+
+if (navNextBtn) {
+  navNextBtn.addEventListener('click', () => {
+    navigateToNext()
+  })
+}
+
+// Update button states on page change
+window.addEventListener('pagechange', updateNavButtons)
+
 // ─── Boot the router ──────────────────────────────────────────────────────────
 initRouter()
+
+// Initial button state update
+updateNavButtons()
