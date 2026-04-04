@@ -67,6 +67,8 @@ interface State {
   // For batched collision processing
   pendingCollisions: number
   simulationComplete: boolean
+  // For visual vibration effect during high-collision frames
+  vibrationOffset: number
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -85,6 +87,7 @@ function createInitialState(): State {
     scale: 1,
     pendingCollisions: 0,
     simulationComplete: false,
+    vibrationOffset: 0,
   }
 }
 
@@ -101,6 +104,7 @@ function resetState(state: State): void {
   state.time = 0
   state.pendingCollisions = 0
   state.simulationComplete = false
+  state.vibrationOffset = 0
 }
 
 function getBox2Size(m2: number): number {
@@ -217,9 +221,11 @@ export function createBouncingBoxesPage(): Page {
     const boxSize = BASE_BOX_SIZE * scale
     const scaledBox2Size = box2Size * scale
 
+    // Apply vibration offset to small box when many collisions per frame
+    const vibrationX = state.vibrationOffset * scale
     ctx.fillStyle = C_BOX1
     ctx.fillRect(
-      state.smallBoxX * scale - boxSize / 2,
+      state.smallBoxX * scale - boxSize / 2 + vibrationX,
       canvasH / 2 - boxSize / 2,
       boxSize,
       boxSize
@@ -313,6 +319,17 @@ export function createBouncingBoxesPage(): Page {
         collisionsThisFrame++
         playCollisionSound()
       }
+    }
+  
+    // Apply vibration effect when many collisions occurred this frame
+    // The more collisions, the more intense the vibration
+    if (collisionsThisFrame > 10) {
+      // Vibration intensity scales with collision count
+      const intensity = Math.min(collisionsThisFrame / 100, 0.2)
+      state.vibrationOffset = (Math.random() - 0.5) * intensity * BASE_BOX_SIZE * 0.3
+    } else {
+      // Decay vibration when not many collisions
+      state.vibrationOffset *= 0.5
     }
   
     if (isSimulationComplete()) {
