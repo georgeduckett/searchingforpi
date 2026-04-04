@@ -64,6 +64,9 @@ interface State {
   rafId: number | null
   time: number
   scale: number
+  // For batched collision processing
+  pendingCollisions: number
+  simulationComplete: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -80,6 +83,8 @@ function createInitialState(): State {
     rafId: null,
     time: 0,
     scale: 1,
+    pendingCollisions: 0,
+    simulationComplete: false,
   }
 }
 
@@ -94,6 +99,8 @@ function resetState(state: State): void {
   state.running = false
   state.rafId = null
   state.time = 0
+  state.pendingCollisions = 0
+  state.simulationComplete = false
 }
 
 function getBox2Size(m2: number): number {
@@ -264,45 +271,52 @@ export function createBouncingBoxesPage(): Page {
     return { type: 'none', time: Infinity }
   }
 
+  // Maximum collisions to process per frame to keep UI responsive
+  const MAX_COLLISIONS_PER_FRAME = 461
+  
   function updatePhysics(timestamp: number): void {
     const elapsedTimeMS = Math.min(timestamp - state.time, 100)
     state.time = timestamp
     let timeRemaining = elapsedTimeMS / 1000
-
-    while (timeRemaining > 1e-6) {
+    let collisionsThisFrame = 0
+  
+    while (timeRemaining > 1e-6 && collisionsThisFrame < MAX_COLLISIONS_PER_FRAME) {
       const collision = getTimeToCollision()
-
+  
       if (collision.time >= timeRemaining) {
         state.smallBoxX += state.smallBoxV * timeRemaining
         state.largeBoxX += state.largeBoxV * timeRemaining
         break
       }
-
+  
       state.smallBoxX += state.smallBoxV * collision.time
       state.largeBoxX += state.largeBoxV * collision.time
       timeRemaining -= collision.time
-
+  
       if (collision.type === 'box') {
         const m1 = M1
         const m2 = state.m2
         const v1 = state.smallBoxV
         const v2 = state.largeBoxV
-
+  
         const newV1 = ((m1 - m2) / (m1 + m2)) * v1 + (2 * m2 / (m1 + m2)) * v2
         const newV2 = (2 * m1 / (m1 + m2)) * v1 + ((m2 - m1) / (m1 + m2)) * v2
-
+  
         state.smallBoxV = newV1
         state.largeBoxV = newV2
         state.collisions++
+        collisionsThisFrame++
         playCollisionSound()
       } else if (collision.type === 'wall') {
         state.smallBoxV = -state.smallBoxV
         state.collisions++
+        collisionsThisFrame++
         playCollisionSound()
       }
     }
-
+  
     if (isSimulationComplete()) {
+      state.simulationComplete = true
       stop()
     }
   }
