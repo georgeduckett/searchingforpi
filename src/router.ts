@@ -38,6 +38,9 @@ function navigate(hash: string): void {
   container.innerHTML = ''
   container.appendChild(activePage.render())
 
+  // Reset scroll position on page change
+  document.getElementById('main-content')?.scrollTo(0, 0)
+
   // Update active nav link
   document.querySelectorAll('.nav-link').forEach(el => {
     const link = el as HTMLAnchorElement
