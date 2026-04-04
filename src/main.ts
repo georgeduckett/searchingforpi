@@ -3,7 +3,7 @@
 
 import './style.css'
 import { initRouter, registerPage } from './router'
-import { pageFactories } from './methods/definitions'
+import { pageFactories } from './methods/registry'
 import { buildSidebarNav, initMobileNav, initTheme, initPageNav } from './navigation'
 
 // ─── Register Pages ───────────────────────────────────────────────────────────

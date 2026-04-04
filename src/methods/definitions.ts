@@ -1,8 +1,6 @@
 // ─── Page Definitions ─────────────────────────────────────────────────────────
-// Single source of truth for all page metadata and factories.
-// This file consolidates: pages.ts metadata, main.ts factories, homePreviews.ts renderers
-
-import type { PageFactory } from '../router'
+// Single source of truth for all page metadata.
+// This file contains only the page info types and metadata declarations.
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,76 +122,4 @@ export function getMethodInfo(hash: string): PageInfo | undefined {
 /** Get method index by hash (e.g., "01", "02") */
 export function getMethodIndex(hash: string): string {
   return getMethodInfo(hash)?.index ?? ''
-}
-
-// ─── Page Factory Registry ────────────────────────────────────────────────────
-
-import { createHomePage } from './home'
-import { createMonteCarloPage } from './monteCarlo'
-import { createLeibnizPage } from './leibniz'
-import { createBuffonPage } from './buffon'
-import { createCoinTossPage } from './coinToss'
-import { createBouncingBoxesPage } from './bouncingBoxes'
-import { createArchimedesPage } from './archimedes'
-import { createDrawCirclePage } from './drawCircle'
-import { createGasMoleculesPage } from './gasMolecules'
-import { createRiemannPage } from './riemann'
-import { createBaselPage } from './basel'
-import { createWallisPage } from './wallis'
-import { createCoprimalityPage } from './coprimality'
-import { createGaltonPage } from './galton'
-import { createCirclePackingPage } from './circlePacking'
-
-export const pageFactories: Record<string, PageFactory> = {
-  home: createHomePage,
-  'monte-carlo': createMonteCarloPage,
-  leibniz: createLeibnizPage,
-  buffon: createBuffonPage,
-  'coin-toss': createCoinTossPage,
-  'bouncing-boxes': createBouncingBoxesPage,
-  archimedes: createArchimedesPage,
-  'draw-circle': createDrawCirclePage,
-  'gas-molecules': createGasMoleculesPage,
-  riemann: createRiemannPage,
-  basel: createBaselPage,
-  wallis: createWallisPage,
-  coprimality: createCoprimalityPage,
-  galton: createGaltonPage,
-  'circle-packing': createCirclePackingPage,
-}
-
-// ─── Preview Renderer Registry ────────────────────────────────────────────────
-
-import { drawPreview as drawMonteCarlo } from './monteCarlo'
-import { drawPreview as drawLeibniz } from './leibniz'
-import { drawPreview as drawBuffon } from './buffon'
-import { drawPreview as drawCoinToss } from './coinToss'
-import { drawPreview as drawBouncingBoxes } from './bouncingBoxes'
-import { drawPreview as drawArchimedes } from './archimedes'
-import { drawPreview as drawDrawCircle } from './drawCircle'
-import { drawPreview as drawRiemann } from './riemann'
-import { drawPreview as drawBasel } from './basel'
-import { drawPreview as drawWallis } from './wallis'
-import { drawPreview as drawCoprimality } from './coprimality'
-import { drawPreview as drawGalton } from './galton'
-import { drawPreview as drawCirclePacking } from './circlePacking'
-import { drawPreview as drawGasMolecules } from './gasMolecules'
-
-export type PreviewRenderer = (ctx: CanvasRenderingContext2D, time: number) => void
-
-export const previewRenderers: Record<string, PreviewRenderer> = {
-  'monte-carlo': drawMonteCarlo,
-  leibniz: drawLeibniz,
-  buffon: drawBuffon,
-  'coin-toss': drawCoinToss,
-  'bouncing-boxes': drawBouncingBoxes,
-  archimedes: drawArchimedes,
-  'draw-circle': drawDrawCircle,
-  riemann: drawRiemann,
-  basel: drawBasel,
-  wallis: drawWallis,
-  coprimality: drawCoprimality,
-  galton: drawGalton,
-  'circle-packing': drawCirclePacking,
-  'gas-molecules': drawGasMolecules,
 }
