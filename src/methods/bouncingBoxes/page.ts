@@ -66,11 +66,11 @@ export const createBouncingBoxesPage = createMethodPageFactory<State>(
       // Store controller for cleanup
       state._controller = controller
     },
-  
+
     draw(_ctx) {
       // Drawing is handled in init and animation loop
     },
-  
+
     cleanup(ctx) {
       cleanupController(ctx.state)
       // Also clean up resize observer

@@ -3,7 +3,12 @@
 // and state management for common method page patterns.
 
 import type { MethodPageContext } from './page/types'
-import { createFrameAnimation, createIntervalAnimation, type FrameAnimationLoop, type IntervalAnimationLoop } from './animation'
+import {
+  createFrameAnimation,
+  createIntervalAnimation,
+  type FrameAnimationLoop,
+  type IntervalAnimationLoop,
+} from './animation'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -153,8 +158,17 @@ export interface AnimationController {
 export function createFrameController<S extends AnimationStateBase>(
   config: FrameControllerConfig<S>
 ): AnimationController {
-  const { ctx, buttons, update, draw, isComplete, onComplete, onReset, onStep, onStart, onStop } = config
-  const { btnStart, btnStep, btnReset, startLabel = 'Start', runningLabel = 'Running…', resumeLabel = 'Resume', doneLabel = 'Done' } = buttons
+  const { ctx, buttons, update, draw, isComplete, onComplete, onReset, onStep, onStart, onStop } =
+    config
+  const {
+    btnStart,
+    btnStep,
+    btnReset,
+    startLabel = 'Start',
+    runningLabel = 'Running…',
+    resumeLabel = 'Resume',
+    doneLabel = 'Done',
+  } = buttons
 
   let animation: FrameAnimationLoop | null = null
 
@@ -162,7 +176,7 @@ export function createFrameController<S extends AnimationStateBase>(
   animation = createFrameAnimation(ctx, {
     update,
     draw,
-    isRunning: (state) => state.running && !isComplete?.(state),
+    isRunning: state => state.running && !isComplete?.(state),
     onComplete: () => {
       btnStart.textContent = doneLabel
       btnStart.disabled = true
@@ -277,8 +291,27 @@ export function createFrameController<S extends AnimationStateBase>(
 export function createIntervalController<S extends AnimationStateBase>(
   config: IntervalControllerConfig<S>
 ): AnimationController {
-  const { ctx, buttons, intervalMs, tick, isComplete, onComplete, onReset, onStep, onStart, onStop } = config
-  const { btnStart, btnStep, btnReset, startLabel = 'Start', runningLabel = 'Running…', resumeLabel = 'Resume', doneLabel = 'Done' } = buttons
+  const {
+    ctx,
+    buttons,
+    intervalMs,
+    tick,
+    isComplete,
+    onComplete,
+    onReset,
+    onStep,
+    onStart,
+    onStop,
+  } = config
+  const {
+    btnStart,
+    btnStep,
+    btnReset,
+    startLabel = 'Start',
+    runningLabel = 'Running…',
+    resumeLabel = 'Resume',
+    doneLabel = 'Done',
+  } = buttons
 
   let animation: IntervalAnimationLoop | null = null
 
@@ -286,7 +319,7 @@ export function createIntervalController<S extends AnimationStateBase>(
   animation = createIntervalAnimation(ctx, {
     intervalMs,
     tick,
-    isRunning: (state) => state.running && !isComplete?.(state),
+    isRunning: state => state.running && !isComplete?.(state),
     onComplete: () => {
       btnStart.textContent = doneLabel
       btnStart.disabled = true
@@ -386,7 +419,14 @@ export interface SimpleButtonBinder {
  * Creates a simple button binder for manual control.
  */
 export function bindButtons(buttons: StandardButtonsConfig): SimpleButtonBinder {
-  const { btnStart, btnStep, btnReset, runningLabel = 'Running…', resumeLabel = 'Resume', doneLabel = 'Done' } = buttons
+  const {
+    btnStart,
+    btnStep,
+    btnReset,
+    runningLabel = 'Running…',
+    resumeLabel = 'Resume',
+    doneLabel = 'Done',
+  } = buttons
 
   let startHandler: (() => void) | null = null
   let stepHandler: (() => void) | null = null

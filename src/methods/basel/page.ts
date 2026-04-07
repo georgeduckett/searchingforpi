@@ -28,10 +28,14 @@ export const createBaselPage = createMethodPageFactory<State>(
         { color: getInsideColor(), text: 'Cumulative sum' },
         { color: getAmberColor(), text: 'Limit π²/6' },
       ])}
-      ${explanation('How it works', [
-        'Euler proved in 1734 that the sum of reciprocal squares equals π²/6. This was a famous open problem known as the Basel Problem.',
-        'Each term 1/n² is visualized as a rectangle. The total height of all rectangles approaches π²/6 ≈ 1.6449. Therefore π ≈ √(6 × sum).',
-      ], '∑₁^∞ 1/n² = π²/6')}
+      ${explanation(
+        'How it works',
+        [
+          'Euler proved in 1734 that the sum of reciprocal squares equals π²/6. This was a famous open problem known as the Basel Problem.',
+          'Each term 1/n² is visualized as a rectangle. The total height of all rectangles approaches π²/6 ≈ 1.6449. Therefore π ≈ √(6 × sum).',
+        ],
+        '∑₁^∞ 1/n² = π²/6'
+      )}
     `,
   },
   createInitialState(),

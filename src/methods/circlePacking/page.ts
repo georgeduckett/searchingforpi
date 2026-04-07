@@ -26,11 +26,15 @@ export const createCirclePackingPage = createMethodPageFactory<State>(
       ${statCard('Circles placed', 'cp-circles', { subtext: `of ${MAX_CIRCLES} max` })}
       ${statCard('Area coverage', 'cp-covered', { subtext: 'jamming limit ~55%' })}
       ${legend([{ color: getInsideColor(), text: 'Placed circles' }])}
-      ${explanation('How it works', [
-        'We place circles randomly without overlap (random sequential adsorption). The covered area equals π times the sum of squared radii (for non-overlapping circles).',
-        'By measuring the actual covered area and dividing by Σr², we can estimate the value of π.',
-        'The maximum packing density (jamming limit) for random circle placement is approximately 54.7%.',
-      ], 'Area = π × Σr²')}
+      ${explanation(
+        'How it works',
+        [
+          'We place circles randomly without overlap (random sequential adsorption). The covered area equals π times the sum of squared radii (for non-overlapping circles).',
+          'By measuring the actual covered area and dividing by Σr², we can estimate the value of π.',
+          'The maximum packing density (jamming limit) for random circle placement is approximately 54.7%.',
+        ],
+        'Area = π × Σr²'
+      )}
     `,
   },
   createInitialState(),

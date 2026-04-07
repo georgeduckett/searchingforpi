@@ -9,7 +9,12 @@ import { Circle, PADDING } from './types'
 /**
  * Draw the complete scene - bounding square and all circles.
  */
-export function draw(ctx: CanvasRenderingContext2D, circles: Circle[], canvasWidth: number, canvasHeight: number): void {
+export function draw(
+  ctx: CanvasRenderingContext2D,
+  circles: Circle[],
+  canvasWidth: number,
+  canvasHeight: number
+): void {
   // Background
   ctx.fillStyle = getBgColor()
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)

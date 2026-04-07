@@ -20,26 +20,26 @@ export const MAX_COLLISIONS_PER_FRAME = 461
 
 // ─── State ────────────────────────────────────────────────────────────────────
 export interface State {
-k: number
-m2: number
-smallBoxX: number
-smallBoxV: number
-largeBoxX: number
-largeBoxV: number
-collisions: number
-running: boolean
-rafId: number | null
-time: number
-scale: number
-pendingCollisions: number
-simulationComplete: boolean
-vibrationOffset: number
-audioContext: AudioContext | null
-currentOsc: OscillatorNode | null
-soundTimeout: ReturnType<typeof setTimeout> | null
-resizeObserver: ResizeObserver | null
-/** Controller instance for cleanup (set during init) */
-_controller?: { cleanup(): void }
+  k: number
+  m2: number
+  smallBoxX: number
+  smallBoxV: number
+  largeBoxX: number
+  largeBoxV: number
+  collisions: number
+  running: boolean
+  rafId: number | null
+  time: number
+  scale: number
+  pendingCollisions: number
+  simulationComplete: boolean
+  vibrationOffset: number
+  audioContext: AudioContext | null
+  currentOsc: OscillatorNode | null
+  soundTimeout: ReturnType<typeof setTimeout> | null
+  resizeObserver: ResizeObserver | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

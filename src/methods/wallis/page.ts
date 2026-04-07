@@ -33,10 +33,14 @@ export const createWallisPage = createMethodPageFactory<State>(
         { color: C_UNDER, text: 'Under π/2' },
         { color: getAmberColor(), text: 'Target π/2' },
       ])}
-      ${explanation('How it works', [
-        'Discovered by John Wallis in 1655, this infinite product represents π/2 as an elegant alternating product of fractions.',
-        'Each odd-numbered factor (2n/(2n-1)) is greater than 1 and temporarily pushes the product above π/2. Each even-numbered factor (2n/(2n+1)) brings it back below. This oscillation gradually dampens as the product converges.',
-      ], 'π/2 = (2/1)·(2/3)·(4/3)·…')}
+      ${explanation(
+        'How it works',
+        [
+          'Discovered by John Wallis in 1655, this infinite product represents π/2 as an elegant alternating product of fractions.',
+          'Each odd-numbered factor (2n/(2n-1)) is greater than 1 and temporarily pushes the product above π/2. Each even-numbered factor (2n/(2n+1)) brings it back below. This oscillation gradually dampens as the product converges.',
+        ],
+        'π/2 = (2/1)·(2/3)·(4/3)·…'
+      )}
     `,
   },
   createInitialState(),

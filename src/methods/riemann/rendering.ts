@@ -1,16 +1,20 @@
 // ─── Riemann Rendering ───────────────────────────────────────────────────────
 // Canvas drawing functions for the Riemann integral visualization.
 
-import { getBgColor, getGridColor, getInsideColor, getAmberColor, getTextMutedColor, CANVAS_SIZE } from '../../colors'
+import {
+  getBgColor,
+  getGridColor,
+  getInsideColor,
+  getAmberColor,
+  getTextMutedColor,
+  CANVAS_SIZE,
+} from '../../colors'
 import { State, f } from './types'
 
 /**
  * Draw the complete Riemann integral visualization.
  */
-export function draw(
-  ctx: CanvasRenderingContext2D,
-  state: State
-): void {
+export function draw(ctx: CanvasRenderingContext2D, state: State): void {
   const W = CANVAS_SIZE
   const H = CANVAS_SIZE
   const pad = 40
@@ -26,8 +30,14 @@ export function draw(
   for (let i = 0; i <= 10; i++) {
     const x = pad + (plotW * i) / 10
     const y = pad + (plotH * i) / 10
-    ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(x, pad)
+    ctx.lineTo(x, H - pad)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(pad, y)
+    ctx.lineTo(W - pad, y)
+    ctx.stroke()
   }
 
   // Draw rectangles (Riemann sum)
@@ -40,8 +50,8 @@ export function draw(
     for (let i = 0; i < n; i++) {
       const x0 = i * dx
       const y = f(x0) // left endpoint
-      const screenX = pad + (x0 * plotW)
-      const screenW = (dx * plotW)
+      const screenX = pad + x0 * plotW
+      const screenW = dx * plotW
       const screenH = (y / 4) * plotH
       ctx.fillRect(screenX, H - pad - screenH, screenW, screenH)
     }
@@ -66,7 +76,10 @@ export function draw(
   ctx.strokeStyle = getTextMutedColor()
   ctx.lineWidth = 1.5
   ctx.beginPath()
-  ctx.moveTo(pad, pad); ctx.lineTo(pad, H - pad); ctx.lineTo(W - pad, H - pad); ctx.stroke()
+  ctx.moveTo(pad, pad)
+  ctx.lineTo(pad, H - pad)
+  ctx.lineTo(W - pad, H - pad)
+  ctx.stroke()
 
   // Labels
   ctx.fillStyle = getTextMutedColor()

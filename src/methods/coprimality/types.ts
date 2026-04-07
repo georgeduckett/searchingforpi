@@ -34,7 +34,7 @@ export function createInitialState(): State {
     coprimeCount: 0,
     totalPairs: 0,
     running: false,
-    rafId: null
+    rafId: null,
   }
 }
 

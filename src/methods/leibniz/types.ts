@@ -11,13 +11,13 @@ export const MS_PER_TERM = 40
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface State {
-terms: number[]
-running: boolean
-termIndex: number
-intervalId: ReturnType<typeof setInterval> | null
-rafId: number | null // For AnimationState compatibility
-/** Controller instance for cleanup (set during init) */
-_controller?: AnimationController
+  terms: number[]
+  running: boolean
+  termIndex: number
+  intervalId: ReturnType<typeof setInterval> | null
+  rafId: number | null // For AnimationState compatibility
+  /** Controller instance for cleanup (set during init) */
+  _controller?: AnimationController
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

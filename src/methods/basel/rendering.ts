@@ -75,7 +75,12 @@ function drawEmptyState(ctx: CanvasRenderingContext2D, W: number, H: number): vo
 /**
  * Draw the π progress indicator circle.
  */
-function drawProgressIndicator(ctx: CanvasRenderingContext2D, W: number, H: number, progress: number): void {
+function drawProgressIndicator(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  progress: number
+): void {
   const cx = W - 40
   const cy = H / 2
   const radius = 28

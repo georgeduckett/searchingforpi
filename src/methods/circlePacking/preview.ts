@@ -58,10 +58,7 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   // Calculate how many circles to show based on time in cycle
   const timeInCycle = time % CYCLE_DURATION
   const circleAddInterval = CYCLE_DURATION / MAX_CIRCLES
-  const circlesToShow = Math.min(
-    Math.floor(timeInCycle / circleAddInterval),
-    previewCircles.length
-  )
+  const circlesToShow = Math.min(Math.floor(timeInCycle / circleAddInterval), previewCircles.length)
 
   // Draw background
   ctx.fillStyle = getBgColor()

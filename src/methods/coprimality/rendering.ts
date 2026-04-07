@@ -7,10 +7,7 @@ import { State, GRID_SIZE, C_COPRIME, C_NOT_COPRIME } from './types'
 /**
  * Draw the complete coprimality visualization.
  */
-export function draw(
-  ctx: CanvasRenderingContext2D,
-  state: State
-): void {
+export function draw(ctx: CanvasRenderingContext2D, state: State): void {
   const W = CANVAS_SIZE
   const H = CANVAS_SIZE
 
@@ -58,6 +55,6 @@ export function draw(
   // Labels
   ctx.fillStyle = getTextMutedColor()
   ctx.font = '11px "JetBrains Mono", monospace'
-  ctx.fillText('a', offsetX - 10, offsetY + GRID_SIZE * cellSize / 2)
-  ctx.fillText('b', offsetX + GRID_SIZE * cellSize / 2 - 10, offsetY - 5)
+  ctx.fillText('a', offsetX - 10, offsetY + (GRID_SIZE * cellSize) / 2)
+  ctx.fillText('b', offsetX + (GRID_SIZE * cellSize) / 2 - 10, offsetY - 5)
 }

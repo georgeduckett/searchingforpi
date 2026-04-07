@@ -1,7 +1,13 @@
 // ─── Bouncing Boxes Rendering ────────────────────────────────────────────────
 // Canvas drawing functions for the bouncing boxes visualization.
 
-import { getBgColor, getTextMutedColor, getInsideColor, getAmberColor, getTextColor } from '../../colors'
+import {
+  getBgColor,
+  getTextMutedColor,
+  getInsideColor,
+  getAmberColor,
+  getTextColor,
+} from '../../colors'
 import { State, BASE_BOX_SIZE, BASE_WALL_X } from './types'
 import { getBox2Size } from './physics'
 

@@ -29,7 +29,7 @@ function initPreviewParticles(): void {
       x: margin + radius + Math.random() * (s - margin * 2 - radius * 2),
       y: margin + radius + Math.random() * (s - margin * 2 - radius * 2),
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed
+      vy: Math.sin(angle) * speed,
     })
   }
 }

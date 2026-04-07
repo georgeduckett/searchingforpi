@@ -1,7 +1,13 @@
 // ─── Draw Circle Preview ─────────────────────────────────────────────────────
 // Preview renderer for the home page.
 
-import { getAmberColor, getAmberBrightColor, getInsideColor, getTextMutedColor, PREVIEW_SIZE } from '../../colors'
+import {
+  getAmberColor,
+  getAmberBrightColor,
+  getInsideColor,
+  getTextMutedColor,
+  PREVIEW_SIZE,
+} from '../../colors'
 import { clearCanvas } from '../base/canvas'
 
 // Method-specific colors
@@ -50,7 +56,8 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
     const lastX = cx + r * Math.cos(lastCompletedAngle)
     const lastY = cy + r * Math.sin(lastCompletedAngle)
     const currentSegmentEnd = ((completedSegments + 1) / totalSegments) * Math.PI * 2
-    const pointAngle = lastCompletedAngle + (currentSegmentEnd - lastCompletedAngle) * segmentProgress
+    const pointAngle =
+      lastCompletedAngle + (currentSegmentEnd - lastCompletedAngle) * segmentProgress
     const dotX = cx + r * Math.cos(pointAngle)
     const dotY = cy + r * Math.sin(pointAngle)
 
@@ -65,7 +72,8 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
 
   const currentSegmentStart = (completedSegments / totalSegments) * Math.PI * 2
   const currentSegmentEnd = ((completedSegments + 1) / totalSegments) * Math.PI * 2
-  const pointAngle = currentSegmentStart + (currentSegmentEnd - currentSegmentStart) * segmentProgress
+  const pointAngle =
+    currentSegmentStart + (currentSegmentEnd - currentSegmentStart) * segmentProgress
 
   ctx.fillStyle = getAmberBrightColor()
   ctx.beginPath()
@@ -83,5 +91,5 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   ctx.fillStyle = getTextMutedColor()
   ctx.font = '12px monospace'
   ctx.textAlign = 'center'
-  ctx.fillText('π = C/d', s / 2, 3 * s / 4)
+  ctx.fillText('π = C/d', s / 2, (3 * s) / 4)
 }

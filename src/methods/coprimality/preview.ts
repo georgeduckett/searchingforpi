@@ -15,7 +15,7 @@ export function drawPreview(ctx: CanvasRenderingContext2D, _time: number): void 
   const cell = (s - 20) / n
   for (let i = 1; i <= n; i++) {
     for (let j = 1; j <= n; j++) {
-      const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b)
+      const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
       const isCoprime = gcd(i, j) === 1
       ctx.fillStyle = isCoprime ? getInsideColor() : getTextMutedColor()
       ctx.globalAlpha = isCoprime ? 0.8 : 0.2

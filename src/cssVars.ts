@@ -9,10 +9,10 @@
  * @returns The computed value as a string
  */
 export function getCSSVar(name: string, fallback?: string): string {
-	const varName = name.startsWith('--') ? name : `--${name}`
-	const root = document.documentElement
-	const value = getComputedStyle(root).getPropertyValue(varName).trim()
-	return value || fallback || ''
+  const varName = name.startsWith('--') ? name : `--${name}`
+  const root = document.documentElement
+  const value = getComputedStyle(root).getPropertyValue(varName).trim()
+  return value || fallback || ''
 }
 
 /**
@@ -22,27 +22,27 @@ export function getCSSVar(name: string, fallback?: string): string {
 const cache = new Map<string, string>()
 
 export function getCSSVarCached(name: string, fallback?: string): string {
-	const varName = name.startsWith('--') ? name : `--${name}`
-	
-	// Check cache first
-	const cached = cache.get(varName)
-	if (cached !== undefined) {
-		return cached
-	}
-	
-	// Get and cache the value
-	const value = getCSSVar(varName, fallback)
-	if (value) {
-		cache.set(varName, value)
-	}
-	return value
+  const varName = name.startsWith('--') ? name : `--${name}`
+
+  // Check cache first
+  const cached = cache.get(varName)
+  if (cached !== undefined) {
+    return cached
+  }
+
+  // Get and cache the value
+  const value = getCSSVar(varName, fallback)
+  if (value) {
+    cache.set(varName, value)
+  }
+  return value
 }
 
 /**
  * Clear the CSS variable cache. Call this when the theme changes.
  */
 export function clearCSSVarCache(): void {
-	cache.clear()
+  cache.clear()
 }
 
 /**
@@ -50,25 +50,25 @@ export function clearCSSVarCache(): void {
  * Should be called once at app startup.
  */
 export function initCSSVarCache(): void {
-	// Pre-cache all theme variables used in the app
-	const themeVars = [
-	  'bg-deep',
-	  'bg-surface',
-	  'bg-raised',
-	  'border',
-	  'border-bright',
-	  'text-primary',
-	  'text-secondary',
-	  'text-muted',
-	  'amber',
-	  'amber-bright',
-	  'amber-dim',
-	  'inside',
-	  'outside',
-	  'success',
-	]
-	
-	for (const varName of themeVars) {
-		getCSSVarCached(varName)
-	}
+  // Pre-cache all theme variables used in the app
+  const themeVars = [
+    'bg-deep',
+    'bg-surface',
+    'bg-raised',
+    'border',
+    'border-bright',
+    'text-primary',
+    'text-secondary',
+    'text-muted',
+    'amber',
+    'amber-bright',
+    'amber-dim',
+    'inside',
+    'outside',
+    'success',
+  ]
+
+  for (const varName of themeVars) {
+    getCSSVarCached(varName)
+  }
 }

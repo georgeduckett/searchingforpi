@@ -44,8 +44,9 @@ export function drawPreview(ctx: CanvasRenderingContext2D, time: number): void {
   const pauseDuration = 0.1
 
   // Calculate cycle duration based on worst case
-  const maxTotalCoins = coinSequences * possibleCoinSequences.reduce((max, seq) => Math.max(max, seq.length), 0)
-  const cycleDuration = (maxTotalCoins / coinsPerSecond) + pauseDuration
+  const maxTotalCoins =
+    coinSequences * possibleCoinSequences.reduce((max, seq) => Math.max(max, seq.length), 0)
+  const cycleDuration = maxTotalCoins / coinsPerSecond + pauseDuration
 
   // Use time to determine cycle - each cycle gets different random sequences
   const cycleIndex = Math.floor(time / cycleDuration)

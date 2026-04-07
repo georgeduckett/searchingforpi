@@ -36,7 +36,7 @@ export function createInitialState(): State {
     temperature: 1,
     running: false,
     rafId: null,
-    steps: 0
+    steps: 0,
   }
 }
 

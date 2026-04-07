@@ -1,7 +1,14 @@
 // ─── Wallis Product Rendering ────────────────────────────────────────────────
 // Canvas drawing functions for the Wallis product visualization.
 
-import { getBgColor, getInsideColor, getOutsideColor, getAmberColor, getTextMutedColor, CANVAS_SIZE } from '../../colors'
+import {
+  getBgColor,
+  getInsideColor,
+  getOutsideColor,
+  getAmberColor,
+  getTextMutedColor,
+  CANVAS_SIZE,
+} from '../../colors'
 import { drawDashedLine, drawText } from '../base/canvas'
 import { State, MAX_FACTORS, getFactor, getTarget } from './types'
 
@@ -44,7 +51,14 @@ export function draw(ctx: CanvasRenderingContext2D, state: State): void {
   drawDashedLine(ctx, pad, piY, W - pad, piY, getAmberColor(), 2, [8, 4])
 
   // Label
-  drawText(ctx, 'π/2 ≈ 1.5708', W - pad - 80, piY - 5, getTextMutedColor(), '11px "JetBrains Mono", monospace')
+  drawText(
+    ctx,
+    'π/2 ≈ 1.5708',
+    W - pad - 80,
+    piY - 5,
+    getTextMutedColor(),
+    '11px "JetBrains Mono", monospace'
+  )
 
   // Draw bars showing deviation at each factor step
   if (state.factors > 0) {

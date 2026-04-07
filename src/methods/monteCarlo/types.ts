@@ -17,13 +17,13 @@ export const CIRCLE_RADIUS = CANVAS_SIZE * CIRCLE_RADIUS_FACTOR
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface State {
-inside: number
-total: number
-running: boolean
-rafId: number | null
-intervalId: ReturnType<typeof setInterval> | null // For AnimationState compatibility
-/** Controller instance for cleanup (set during init) */
-_controller?: AnimationController
+  inside: number
+  total: number
+  running: boolean
+  rafId: number | null
+  intervalId: ReturnType<typeof setInterval> | null // For AnimationState compatibility
+  /** Controller instance for cleanup (set during init) */
+  _controller?: AnimationController
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

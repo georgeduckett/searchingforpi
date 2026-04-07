@@ -32,10 +32,14 @@ export const createGaltonPage = createMethodPageFactory<State>(
         { color: C_BALL, text: 'Dropped balls' },
         { color: getAmberColor(), text: 'Gaussian reference' },
       ])}
-      ${explanation('How it works', [
-        'The Galton board demonstrates the central limit theorem: balls falling through pegs form a binomial distribution that approaches a Gaussian (normal) distribution.',
-        "Stirling's approximation shows factorials relate to π. We estimate π by comparing the peak height to the theoretical Gaussian: peak × √(2πσ²) ≈ total.",
-      ], 'n! ≈ √(2πn)(n/e)ⁿ')}
+      ${explanation(
+        'How it works',
+        [
+          'The Galton board demonstrates the central limit theorem: balls falling through pegs form a binomial distribution that approaches a Gaussian (normal) distribution.',
+          "Stirling's approximation shows factorials relate to π. We estimate π by comparing the peak height to the theoretical Gaussian: peak × √(2πσ²) ≈ total.",
+        ],
+        'n! ≈ √(2πn)(n/e)ⁿ'
+      )}
     `,
   },
   createInitialState(),

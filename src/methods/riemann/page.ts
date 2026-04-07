@@ -27,10 +27,14 @@ export const createRiemannPage = createMethodPageFactory<State>(
         { color: getInsideColor(), text: 'Riemann rectangles' },
         { color: getAmberColor(), text: 'Curve y = 4/(1+x²)' },
       ])}
-      ${explanation('How it works', [
-        'The integral of 4/(1+x²) from 0 to 1 equals exactly π. This is because the antiderivative is 4·arctan(x), and arctan(1) - arctan(0) = π/4.',
-        'Riemann sums approximate this integral by dividing the area into rectangles. As the number of rectangles increases, the sum converges to π.',
-      ], '∫₀¹ 4/(1+x²) dx = π')}
+      ${explanation(
+        'How it works',
+        [
+          'The integral of 4/(1+x²) from 0 to 1 equals exactly π. This is because the antiderivative is 4·arctan(x), and arctan(1) - arctan(0) = π/4.',
+          'Riemann sums approximate this integral by dividing the area into rectangles. As the number of rectangles increases, the sum converges to π.',
+        ],
+        '∫₀¹ 4/(1+x²) dx = π'
+      )}
     `,
   },
   createInitialState(),

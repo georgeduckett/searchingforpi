@@ -10,23 +10,23 @@ import { DOT_ALPHA, PREVIEW_DOT_RADIUS } from './types'
  * Shows a circle with scattered points inside and outside.
  */
 export function drawPreview(ctx: CanvasRenderingContext2D, _time: number): void {
-	const s = PREVIEW_SIZE
-	const insideColor = getInsideColor()
-	const outsideColor = getOutsideColor()
-	const amberColor = getAmberColor()
-	
-	clearCanvas(ctx, s, s)
+  const s = PREVIEW_SIZE
+  const insideColor = getInsideColor()
+  const outsideColor = getOutsideColor()
+  const amberColor = getAmberColor()
 
-	// Circle outline
-	drawCircle(ctx, s / 2, s / 2, s / 2 - 4, amberColor, 1)
+  clearCanvas(ctx, s, s)
 
-	// Dots with stable pseudo-random positions
-	ctx.globalAlpha = DOT_ALPHA
-	for (let i = 0; i < 60; i++) {
-		const x = 4 + (Math.sin(i * 1.1) * 0.5 + 0.5) * (s - 8)
-		const y = 4 + (Math.cos(i * 1.3) * 0.5 + 0.5) * (s - 8)
-		const inside = isInsideCircle(x, y, s / 2, s / 2, s / 2 - 4)
-		fillCircle(ctx, x, y, PREVIEW_DOT_RADIUS, inside ? insideColor : outsideColor)
-	}
-	ctx.globalAlpha = 1
+  // Circle outline
+  drawCircle(ctx, s / 2, s / 2, s / 2 - 4, amberColor, 1)
+
+  // Dots with stable pseudo-random positions
+  ctx.globalAlpha = DOT_ALPHA
+  for (let i = 0; i < 60; i++) {
+    const x = 4 + (Math.sin(i * 1.1) * 0.5 + 0.5) * (s - 8)
+    const y = 4 + (Math.cos(i * 1.3) * 0.5 + 0.5) * (s - 8)
+    const inside = isInsideCircle(x, y, s / 2, s / 2, s / 2 - 4)
+    fillCircle(ctx, x, y, PREVIEW_DOT_RADIUS, inside ? insideColor : outsideColor)
+  }
+  ctx.globalAlpha = 1
 }
