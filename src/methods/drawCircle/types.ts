@@ -36,6 +36,8 @@ export interface State {
     mouseUpHandler: (e: MouseEvent) => void
     touchEndHandler: (e: TouchEvent) => void
   } | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── State Factory ───────────────────────────────────────────────────────────

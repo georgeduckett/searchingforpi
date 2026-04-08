@@ -21,6 +21,8 @@ export interface State {
   rejected: number
   running: boolean
   rafId: number | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

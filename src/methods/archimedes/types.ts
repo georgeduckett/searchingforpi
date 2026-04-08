@@ -20,6 +20,8 @@ export interface State {
   endLower: number
   endUpper: number
   startSides: number
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

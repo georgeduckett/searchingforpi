@@ -1,11 +1,10 @@
 // ─── Riemann Page ────────────────────────────────────────────────────────────
 // Main page factory for the Riemann integral method.
 
-import { fmt } from '../../utils'
 import { getInsideColor, getAmberColor, CANVAS_SIZE } from '../../colors'
-import { createMethodPageFactory, statCard, legend, explanation } from '../base/page'
-import { State, MAX_RECTS, createInitialState, computeSum } from './types'
-import { draw } from './rendering'
+import { createMethodPageFactory, statCard, legend, explanation, cleanupController } from '../base/page'
+import { State, MAX_RECTS, createInitialState } from './types'
+import { createRiemannController, StatsElements } from './controller'
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export const createRiemannPage = createMethodPageFactory<State>(
@@ -40,88 +39,28 @@ export const createRiemannPage = createMethodPageFactory<State>(
   createInitialState(),
   {
     init(ctx) {
-      const { ctx: ctx2d, state, $id } = ctx
+      const { $id } = ctx
 
-      // Get button references
-      const btnStart = $id('btn-start', HTMLButtonElement)
-      const btnStep = $id('btn-step', HTMLButtonElement)
-      const btnReset = $id('btn-reset', HTMLButtonElement)
-      const elEstimate = $id('estimate', HTMLElement)
-      const elRects = $id('rects', HTMLElement)
-      const elError = $id('error', HTMLElement)
-
-      function updateStats(): void {
-        const estimate = computeSum(state.rects)
-        const error = Math.abs(estimate - Math.PI)
-
-        elEstimate.textContent = fmt(estimate)
-        elRects.textContent = state.rects.toLocaleString()
-        elError.textContent = `Error: ${fmt(error)}`
-        elError.className = 'stat-error ' + (error < 0.01 ? 'improving' : 'neutral')
+      // Get stats element references
+      const statsElements: StatsElements = {
+        estimate: $id('estimate', HTMLElement),
+        rects: $id('rects', HTMLElement),
+        error: $id('error', HTMLElement),
       }
 
-      function addRects(count: number): void {
-        state.rects = Math.min(state.rects + count, MAX_RECTS)
-        draw(ctx2d, state)
-        updateStats()
-        if (state.rects >= MAX_RECTS) {
-          stop()
-        }
-      }
+      // Create and store the controller
+      const controller = createRiemannController(ctx, statsElements)
 
-      function start(): void {
-        state.running = true
-        btnStart.disabled = true
-        btnReset.disabled = false
-        btnStart.textContent = 'Running…'
-        state.intervalId = setInterval(() => addRects(5), 100)
-      }
+      // Store controller for cleanup
+      ctx.state._controller = controller
+    },
 
-      function stop(): void {
-        state.running = false
-        if (state.intervalId !== null) {
-          clearInterval(state.intervalId)
-          state.intervalId = null
-        }
-        btnStart.disabled = state.rects >= MAX_RECTS
-        btnStart.textContent = state.rects >= MAX_RECTS ? 'Done' : 'Start'
-      }
-
-      function reset(): void {
-        stop()
-        state.rects = 0
-        draw(ctx2d, state)
-        updateStats()
-        btnStart.disabled = false
-        btnStart.textContent = 'Start'
-        btnReset.disabled = true
-      }
-
-      // Initial draw
-      draw(ctx2d, state)
-      updateStats()
-
-      // Wire up buttons
-      btnStart.addEventListener('click', () => {
-        if (!state.running) start()
-      })
-
-      btnStep.addEventListener('click', () => {
-        if (!state.running) {
-          addRects(5)
-          btnReset.disabled = false
-        }
-      })
-
-      btnReset.addEventListener('click', reset)
+    draw(_ctx) {
+      // Drawing is handled in init and animation loop
     },
 
     cleanup(ctx) {
-      if (ctx.state.intervalId !== null) {
-        clearInterval(ctx.state.intervalId)
-        ctx.state.intervalId = null
-      }
-      ctx.state.running = false
+      cleanupController(ctx.state)
     },
   }
 )

@@ -9,6 +9,8 @@ export interface State {
   rects: number
   running: boolean
   intervalId: ReturnType<typeof setInterval> | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── State Factory ───────────────────────────────────────────────────────────

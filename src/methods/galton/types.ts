@@ -36,6 +36,8 @@ export interface State {
   running: boolean
   dropping: boolean
   rafId: number | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

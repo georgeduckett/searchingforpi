@@ -10,6 +10,8 @@ export interface State {
   product: number
   running: boolean
   intervalId: ReturnType<typeof setInterval> | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

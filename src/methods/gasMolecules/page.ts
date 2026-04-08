@@ -1,24 +1,10 @@
 // ─── Gas Molecules Page ──────────────────────────────────────────────────────
 // Main page factory for the gas molecules method.
 
-import { fmt } from '../../utils'
 import { CANVAS_SIZE } from '../../colors'
-import { createMethodPageFactory, statCard, explanation, legend } from '../base/page'
-import {
-  State,
-  MAX_PARTICLES,
-  TICKS_PER_FRAME,
-  CONTAINER_PAD,
-  PARTICLE_RADIUS,
-  C_PARTICLE,
-  C_WALL,
-  createInitialState,
-  gaussianRandom,
-  estimatePi,
-  calculateAvgSpeed,
-} from './types'
-import { physicsStep } from './physics'
-import { draw } from './rendering'
+import { createMethodPageFactory, statCard, explanation, legend, cleanupController } from '../base/page'
+import { State, MAX_PARTICLES, C_PARTICLE, C_WALL, createInitialState } from './types'
+import { createGasMoleculesController, StatsElements } from './controller'
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export const createGasMoleculesPage = createMethodPageFactory<State>(
@@ -60,139 +46,29 @@ export const createGasMoleculesPage = createMethodPageFactory<State>(
   createInitialState(),
   {
     init(ctx) {
-      const { canvas, ctx: canvasCtx } = ctx
-      const $required = ctx.$required.bind(ctx)
+      const { $required } = ctx
 
-      const btnStart = $required('#gm-start') as HTMLButtonElement
-      const btnAdd = $required('#gm-add') as HTMLButtonElement
-      const btnReset = $required('#gm-reset') as HTMLButtonElement
-      const tempSlider = $required('#gm-temp') as HTMLInputElement
-      const elEstimate = $required('#gm-estimate')
-      const elParticles = $required('#gm-particles')
-      const elAvgSpeed = $required('#gm-avg-speed')
-      const elError = $required('#gm-error')
-      const tempVal = $required('#gm-temp-val')
-
-      function updateStats(): void {
-        const piEstimate = estimatePi(ctx.state.particles, ctx.state.temperature)
-        const error = Math.abs(piEstimate - Math.PI)
-        const avgSpeed = calculateAvgSpeed(ctx.state.particles)
-
-        elEstimate.textContent = ctx.state.particles.length < 10 ? '—' : fmt(piEstimate)
-        elParticles.textContent = ctx.state.particles.length.toLocaleString()
-        elAvgSpeed.textContent = avgSpeed.toFixed(2)
-
-        if (ctx.state.particles.length >= 10) {
-          elError.textContent = `Error: ${fmt(error)}`
-          elError.className = 'stat-error ' + (error < 0.5 ? 'improving' : 'neutral')
-        } else {
-          elError.textContent = 'Error: —'
-          elError.className = 'stat-error neutral'
-        }
+      // Get stats element references
+      const statsElements: StatsElements = {
+        estimate: $required('#gm-estimate'),
+        particles: $required('#gm-particles'),
+        avgSpeed: $required('#gm-avg-speed'),
+        error: $required('#gm-error'),
       }
 
-      // Add a particle with random velocity based on temperature
-      function addParticle(): void {
-        const W = canvas.width - CONTAINER_PAD * 2 - PARTICLE_RADIUS * 2
-        const H = canvas.height - CONTAINER_PAD * 2 - PARTICLE_RADIUS * 2
+      // Create and store the controller
+      const controller = createGasMoleculesController(ctx, statsElements)
 
-        // Maxwell-Boltzmann uses Gaussian velocity components
-        const sigma = Math.sqrt(ctx.state.temperature)
-        const vx = gaussianRandom() * sigma
-        const vy = gaussianRandom() * sigma
+      // Store controller for cleanup
+      ctx.state._controller = controller
+    },
 
-        ctx.state.particles.push({
-          x: CONTAINER_PAD + PARTICLE_RADIUS + Math.random() * W,
-          y: CONTAINER_PAD + PARTICLE_RADIUS + Math.random() * H,
-          vx,
-          vy,
-        })
-      }
-
-      function addParticles(count: number): void {
-        for (let i = 0; i < count && ctx.state.particles.length < MAX_PARTICLES; i++) {
-          addParticle()
-        }
-        draw(canvasCtx, ctx.state)
-        updateStats()
-      }
-
-      // Animation tick
-      function tick(): void {
-        if (!ctx.state.running) return
-
-        for (let i = 0; i < TICKS_PER_FRAME; i++) {
-          physicsStep(
-            ctx.state.particles,
-            canvas.width,
-            canvas.height,
-            ctx.state.temperature,
-            ctx.state.steps
-          )
-          ctx.state.steps++
-        }
-
-        draw(canvasCtx, ctx.state)
-        updateStats()
-        ctx.state.rafId = requestAnimationFrame(tick)
-      }
-
-      function start(): void {
-        if (ctx.state.particles.length === 0) {
-          addParticles(50)
-        }
-        ctx.state.running = true
-        btnStart.disabled = true
-        btnReset.disabled = false
-        btnStart.textContent = 'Running…'
-        ctx.state.rafId = requestAnimationFrame(tick)
-      }
-
-      function reset(): void {
-        ctx.state.running = false
-        if (ctx.state.rafId !== null) cancelAnimationFrame(ctx.state.rafId)
-        ctx.state.particles = []
-        ctx.state.steps = 0
-        draw(canvasCtx, ctx.state)
-        updateStats()
-        btnStart.disabled = false
-        btnStart.textContent = 'Start'
-        btnReset.disabled = true
-      }
-
-      function updateTemperature(): void {
-        ctx.state.temperature = parseFloat(tempSlider.value) || 1
-        updateStats()
-      }
-
-      // Initial draw
-      draw(canvasCtx, ctx.state)
-      updateStats()
-
-      // Event handlers
-      btnStart.addEventListener('click', () => {
-        if (!ctx.state.running) start()
-      })
-
-      btnAdd.addEventListener('click', () => {
-        addParticles(10)
-        btnReset.disabled = false
-      })
-
-      btnReset.addEventListener('click', reset)
-
-      tempSlider.addEventListener('input', () => {
-        tempVal.textContent = tempSlider.value
-        updateTemperature()
-      })
+    draw(_ctx) {
+      // Drawing is handled in init and animation loop
     },
 
     cleanup(ctx) {
-      ctx.state.running = false
-      if (ctx.state.rafId !== null) {
-        cancelAnimationFrame(ctx.state.rafId)
-        ctx.state.rafId = null
-      }
+      cleanupController(ctx.state)
     },
   }
 )

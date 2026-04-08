@@ -26,6 +26,8 @@ export interface State {
   newCoinIndex: number | null
   highlightTimeout: ReturnType<typeof setTimeout> | null
   highlightComplete: boolean
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── State Factory ───────────────────────────────────────────────────────────

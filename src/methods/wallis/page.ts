@@ -1,15 +1,11 @@
 // ─── Wallis Product Page ──────────────────────────────────────────────────────
 // Main page factory for the Wallis product method.
 
-import { fmt } from '../../utils'
-import { getInsideColor, getOutsideColor, getAmberColor, CANVAS_SIZE } from '../../colors'
-import { createMethodPageFactory, statCard, legend, explanation } from '../base/page'
-import { State, MAX_FACTORS, getFactor, estimatePi, createInitialState } from './types'
-import { draw } from './rendering'
-
-// Method-specific colors for UI
-const C_OVER = getInsideColor()
-const C_UNDER = getOutsideColor()
+import { getAmberColor, CANVAS_SIZE } from '../../colors'
+import { createMethodPageFactory, statCard, legend, explanation, cleanupController } from '../base/page'
+import { State, MAX_FACTORS, createInitialState } from './types'
+import { createWallisController, StatsElements } from './controller'
+import { C_OVER, C_UNDER } from './rendering'
 
 // ─── Page Factory ────────────────────────────────────────────────────────────
 export const createWallisPage = createMethodPageFactory<State>(
@@ -46,93 +42,29 @@ export const createWallisPage = createMethodPageFactory<State>(
   createInitialState(),
   {
     init(ctx) {
-      const { ctx: ctx2d, state, $id } = ctx
+      const { $id } = ctx
 
-      // Get button references
-      const btnStart = $id('btn-start', HTMLButtonElement)
-      const btnStep = $id('btn-step', HTMLButtonElement)
-      const btnReset = $id('btn-reset', HTMLButtonElement)
-      const elEstimate = $id('estimate', HTMLElement)
-      const elFactors = $id('factors', HTMLElement)
-      const elProduct = $id('product', HTMLElement)
-      const elError = $id('error', HTMLElement)
-
-      function updateStats(): void {
-        const piEstimate = estimatePi(state.product)
-        const error = Math.abs(piEstimate - Math.PI)
-
-        elEstimate.textContent = fmt(piEstimate)
-        elFactors.textContent = state.factors.toLocaleString()
-        elProduct.textContent = fmt(state.product)
-        elError.textContent = `Error: ${fmt(error)}`
-        elError.className = 'stat-error ' + (error < 0.1 ? 'improving' : 'neutral')
+      // Get stats element references
+      const statsElements: StatsElements = {
+        estimate: $id('estimate', HTMLElement),
+        factors: $id('factors', HTMLElement),
+        product: $id('product', HTMLElement),
+        error: $id('error', HTMLElement),
       }
 
-      function addFactor(): void {
-        state.factors++
-        state.product *= getFactor(state.factors)
+      // Create and store the controller
+      const controller = createWallisController(ctx, statsElements)
 
-        draw(ctx2d, state)
-        updateStats()
-        if (state.factors >= MAX_FACTORS) {
-          stop()
-        }
-      }
+      // Store controller for cleanup
+      ctx.state._controller = controller
+    },
 
-      function start(): void {
-        state.running = true
-        btnStart.disabled = true
-        btnReset.disabled = false
-        btnStart.textContent = 'Running…'
-        state.intervalId = setInterval(addFactor, 50)
-      }
-
-      function stop(): void {
-        state.running = false
-        if (state.intervalId !== null) {
-          clearInterval(state.intervalId)
-          state.intervalId = null
-        }
-        btnStart.disabled = state.factors >= MAX_FACTORS
-        btnStart.textContent = state.factors >= MAX_FACTORS ? 'Done' : 'Start'
-      }
-
-      function reset(): void {
-        stop()
-        state.factors = 0
-        state.product = 1
-        draw(ctx2d, state)
-        updateStats()
-        btnStart.disabled = false
-        btnStart.textContent = 'Start'
-        btnReset.disabled = true
-      }
-
-      // Initial draw
-      draw(ctx2d, state)
-      updateStats()
-
-      // Wire up buttons
-      btnStart.addEventListener('click', () => {
-        if (!state.running) start()
-      })
-
-      btnStep.addEventListener('click', () => {
-        if (!state.running) {
-          addFactor()
-          btnReset.disabled = false
-        }
-      })
-
-      btnReset.addEventListener('click', reset)
+    draw(_ctx) {
+      // Drawing is handled in init and animation loop
     },
 
     cleanup(ctx) {
-      if (ctx.state.intervalId !== null) {
-        clearInterval(ctx.state.intervalId)
-        ctx.state.intervalId = null
-      }
-      ctx.state.running = false
+      cleanupController(ctx.state)
     },
   }
 )

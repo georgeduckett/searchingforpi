@@ -25,6 +25,8 @@ export interface State {
   totalPairs: number
   running: boolean
   rafId: number | null
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── State Factory ───────────────────────────────────────────────────────────

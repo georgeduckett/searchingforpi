@@ -1,11 +1,10 @@
 // ─── Basel Problem Page ──────────────────────────────────────────────────────
 // Main page factory for the Basel problem method.
 
-import { fmt } from '../../utils'
 import { getInsideColor, getAmberColor, CANVAS_SIZE } from '../../colors'
-import { createMethodPageFactory, statCard, legend, explanation } from '../base/page'
-import { State, MAX_TERMS, estimatePi, createInitialState } from './types'
-import { draw } from './rendering'
+import { createMethodPageFactory, statCard, legend, explanation, cleanupController } from '../base/page'
+import { State, MAX_TERMS, createInitialState } from './types'
+import { createBaselController, StatsElements } from './controller'
 
 // ─── Page Factory ────────────────────────────────────────────────────────────
 export const createBaselPage = createMethodPageFactory<State>(
@@ -41,92 +40,29 @@ export const createBaselPage = createMethodPageFactory<State>(
   createInitialState(),
   {
     init(ctx) {
-      const { ctx: ctx2d, state, $id } = ctx
+      const { $id } = ctx
 
-      // Get button references
-      const btnStart = $id('btn-start', HTMLButtonElement)
-      const btnStep = $id('btn-step', HTMLButtonElement)
-      const btnReset = $id('btn-reset', HTMLButtonElement)
-      const elEstimate = $id('estimate', HTMLElement)
-      const elTerms = $id('terms', HTMLElement)
-      const elSum = $id('sum', HTMLElement)
-      const elError = $id('error', HTMLElement)
-
-      function updateStats(): void {
-        const piEstimate = estimatePi(state.sum)
-        const error = Math.abs(piEstimate - Math.PI)
-
-        elEstimate.textContent = fmt(piEstimate)
-        elTerms.textContent = state.terms.toLocaleString()
-        elSum.textContent = fmt(state.sum)
-        elError.textContent = `Error: ${fmt(error)}`
-        elError.className = 'stat-error ' + (error < 0.1 ? 'improving' : 'neutral')
+      // Get stats element references
+      const statsElements: StatsElements = {
+        estimate: $id('estimate', HTMLElement),
+        terms: $id('terms', HTMLElement),
+        sum: $id('sum', HTMLElement),
+        error: $id('error', HTMLElement),
       }
 
-      function addTerm(): void {
-        state.terms++
-        state.sum += 1 / (state.terms * state.terms)
-        draw(ctx2d, state)
-        updateStats()
-        if (state.terms >= MAX_TERMS) {
-          stop()
-        }
-      }
+      // Create and store the controller
+      const controller = createBaselController(ctx, statsElements)
 
-      function start(): void {
-        state.running = true
-        btnStart.disabled = true
-        btnReset.disabled = false
-        btnStart.textContent = 'Running…'
-        state.intervalId = setInterval(addTerm, 150)
-      }
+      // Store controller for cleanup
+      ctx.state._controller = controller
+    },
 
-      function stop(): void {
-        state.running = false
-        if (state.intervalId !== null) {
-          clearInterval(state.intervalId)
-          state.intervalId = null
-        }
-        btnStart.disabled = state.terms >= MAX_TERMS
-        btnStart.textContent = state.terms >= MAX_TERMS ? 'Done' : 'Start'
-      }
-
-      function reset(): void {
-        stop()
-        state.terms = 0
-        state.sum = 0
-        draw(ctx2d, state)
-        updateStats()
-        btnStart.disabled = false
-        btnStart.textContent = 'Start'
-        btnReset.disabled = true
-      }
-
-      // Initial draw
-      draw(ctx2d, state)
-      updateStats()
-
-      // Wire up buttons
-      btnStart.addEventListener('click', () => {
-        if (!state.running) start()
-      })
-
-      btnStep.addEventListener('click', () => {
-        if (!state.running) {
-          addTerm()
-          btnReset.disabled = false
-        }
-      })
-
-      btnReset.addEventListener('click', reset)
+    draw(_ctx) {
+      // Drawing is handled in init and animation loop
     },
 
     cleanup(ctx) {
-      if (ctx.state.intervalId !== null) {
-        clearInterval(ctx.state.intervalId)
-        ctx.state.intervalId = null
-      }
-      ctx.state.running = false
+      cleanupController(ctx.state)
     },
   }
 )

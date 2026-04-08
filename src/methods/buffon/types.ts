@@ -31,6 +31,8 @@ export interface State {
   animationEndY: number
   initialAngle: number
   finalAngle: number
+  /** Controller instance for cleanup (set during init) */
+  _controller?: { cleanup(): void }
 }
 
 // ─── Initial State Factory ───────────────────────────────────────────────────

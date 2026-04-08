@@ -12,9 +12,9 @@ import {
 import { drawDashedLine, drawText } from '../base/canvas'
 import { State, MAX_FACTORS, getFactor, getTarget } from './types'
 
-// Method-specific colors
-const C_OVER = getInsideColor()
-const C_UNDER = getOutsideColor()
+// Method-specific colors (exported for use in page)
+export const C_OVER = getInsideColor()
+export const C_UNDER = getOutsideColor()
 
 /**
  * Draw the complete Wallis visualization - deviation bars and product indicator.

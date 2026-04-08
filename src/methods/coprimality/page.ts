@@ -1,19 +1,10 @@
 // ─── Coprimality Page ────────────────────────────────────────────────────────
 // Main page factory for the coprimality method.
 
-import { fmt, isCoprime } from '../../utils'
 import { CANVAS_SIZE } from '../../colors'
-import { createMethodPageFactory, statCard, legend, explanation } from '../base/page'
-import {
-  State,
-  MAX_PAIRS,
-  PAIRS_PER_TICK,
-  C_COPRIME,
-  C_NOT_COPRIME,
-  createInitialState,
-  estimatePi,
-} from './types'
-import { draw } from './rendering'
+import { createMethodPageFactory, statCard, legend, explanation, cleanupController } from '../base/page'
+import { State, MAX_PAIRS, C_COPRIME, C_NOT_COPRIME, createInitialState } from './types'
+import { createCoprimalityController, StatsElements } from './controller'
 
 // ─── Page Factory ─────────────────────────────────────────────────────────────
 export const createCoprimalityPage = createMethodPageFactory<State>(
@@ -50,106 +41,29 @@ export const createCoprimalityPage = createMethodPageFactory<State>(
   createInitialState(),
   {
     init(ctx) {
-      const { ctx: ctx2d, state, $id } = ctx
+      const { $id } = ctx
 
-      // Get button references
-      const btnStart = $id('btn-start', HTMLButtonElement)
-      const btnStep = $id('btn-step', HTMLButtonElement)
-      const btnReset = $id('btn-reset', HTMLButtonElement)
-      const elEstimate = $id('estimate', HTMLElement)
-      const elPairs = $id('pairs', HTMLElement)
-      const elCoprime = $id('coprime', HTMLElement)
-      const elError = $id('error', HTMLElement)
-
-      function updateStats(): void {
-        const piEstimate = estimatePi(state.coprimeCount, state.totalPairs)
-        const error = Math.abs(piEstimate - Math.PI)
-
-        elEstimate.textContent = state.totalPairs === 0 ? '—' : fmt(piEstimate)
-        elPairs.textContent = state.totalPairs.toLocaleString()
-        elCoprime.textContent = state.coprimeCount.toLocaleString()
-        elError.textContent = state.totalPairs === 0 ? 'Error: —' : `Error: ${fmt(error)}`
-        elError.className =
-          'stat-error ' +
-          (error < 0.1 || state.totalPairs < 100
-            ? 'neutral'
-            : error < 0.5
-              ? 'improving'
-              : 'neutral')
+      // Get stats element references
+      const statsElements: StatsElements = {
+        estimate: $id('estimate', HTMLElement),
+        pairs: $id('pairs', HTMLElement),
+        coprime: $id('coprime', HTMLElement),
+        error: $id('error', HTMLElement),
       }
 
-      // Generate random pairs
-      function generatePairs(count: number): void {
-        for (let i = 0; i < count && state.totalPairs < MAX_PAIRS; i++) {
-          const a = Math.floor(Math.random() * 10000) + 1
-          const b = Math.floor(Math.random() * 10000) + 1
-          const coprime = isCoprime(a, b)
-          state.pairs.push({ a, b, coprime })
-          if (coprime) state.coprimeCount++
-          state.totalPairs++
-        }
-        draw(ctx2d, state)
-        updateStats()
-      }
+      // Create and store the controller
+      const controller = createCoprimalityController(ctx, statsElements)
 
-      function tick(): void {
-        if (!state.running) return
-        if (state.totalPairs >= MAX_PAIRS) {
-          state.running = false
-          btnStart.textContent = 'Done'
-          btnStart.disabled = true
-          return
-        }
-        generatePairs(PAIRS_PER_TICK)
-        state.rafId = requestAnimationFrame(tick)
-      }
+      // Store controller for cleanup
+      ctx.state._controller = controller
+    },
 
-      function start(): void {
-        state.running = true
-        btnStart.disabled = true
-        btnReset.disabled = false
-        btnStart.textContent = 'Running…'
-        state.rafId = requestAnimationFrame(tick)
-      }
-
-      function reset(): void {
-        state.running = false
-        if (state.rafId !== null) cancelAnimationFrame(state.rafId)
-        state.pairs = []
-        state.coprimeCount = 0
-        state.totalPairs = 0
-        draw(ctx2d, state)
-        updateStats()
-        btnStart.disabled = false
-        btnStart.textContent = 'Start'
-        btnReset.disabled = true
-      }
-
-      // Initial draw
-      draw(ctx2d, state)
-      updateStats()
-
-      // Wire up buttons
-      btnStart.addEventListener('click', () => {
-        if (!state.running && state.totalPairs < MAX_PAIRS) start()
-      })
-
-      btnStep.addEventListener('click', () => {
-        if (!state.running) {
-          generatePairs(PAIRS_PER_TICK)
-          btnReset.disabled = false
-        }
-      })
-
-      btnReset.addEventListener('click', reset)
+    draw(_ctx) {
+      // Drawing is handled in init and animation loop
     },
 
     cleanup(ctx) {
-      ctx.state.running = false
-      if (ctx.state.rafId !== null) {
-        cancelAnimationFrame(ctx.state.rafId)
-        ctx.state.rafId = null
-      }
+      cleanupController(ctx.state)
     },
   }
 )
