@@ -4,7 +4,7 @@
 
 import type { MethodPageContext } from '../base/page/types'
 import { createFrameController, type AnimationController } from '../base/controller'
-import { fmt } from '../../utils'
+import { createStatsUpdater as buildStatsUpdater } from '../base/statsHelpers'
 import { State, DOTS_PER_TICK, MAX_DOTS } from './types'
 import { estimatePi, generatePoint } from './sampling'
 import { drawBackground, drawPoint } from './rendering'
@@ -25,16 +25,16 @@ export interface StatsElements {
  * Creates a stats updater function for Monte Carlo.
  */
 export function createStatsUpdater(elements: StatsElements, state: State): () => void {
-  return function updateStats(): void {
-    const pi = estimatePi(state.inside, state.total)
-    elements.estimate.textContent = fmt(pi)
-    elements.total.textContent = state.total.toLocaleString()
-    const error = Math.abs(pi - Math.PI)
-    elements.error.textContent = `Error: ${fmt(error)}`
-    elements.error.className = 'stat-error ' + (error < 0.01 ? 'improving' : 'neutral')
-    const pct = Math.min((state.total / MAX_DOTS) * 100, 100)
-    elements.progress.style.width = `${pct}%`
-  }
+  return buildStatsUpdater()
+    .piEstimate(elements.estimate, () => estimatePi(state.inside, state.total), {
+      improvingThreshold: 0.01,
+    })
+    .counter(elements.total, () => state.total)
+    .error(elements.error, () => Math.abs(estimatePi(state.inside, state.total) - Math.PI), {
+      threshold: 0.01,
+    })
+    .progress(elements.progress, () => state.total, MAX_DOTS)
+    .build()
 }
 
 // ─── Animation Logic ──────────────────────────────────────────────────────────

@@ -19,30 +19,51 @@ export interface PiEstimateStatsElements {
 }
 
 /**
+ * Options for creating a π estimate updater.
+ */
+export interface PiEstimateOptions {
+  /** Maximum value for progress bar (0-100%) */
+  maxProgress?: number
+  /** Function to get current progress value */
+  getProgressValue?: () => number
+  /** Threshold for "improving" error class (default: 0.01) */
+  improvingThreshold?: number
+  /** Number of decimal places for estimate (default: 6) */
+  decimals?: number
+  /** Custom formatter for estimate (overrides decimals) */
+  formatter?: (value: number) => string
+  /** Show "Error: " prefix (default: true) */
+  showErrorPrefix?: boolean
+}
+
+/**
  * Creates an updater for π estimate stats.
  * Handles the common pattern of showing estimate, error, and progress.
  */
 export function createPiEstimateUpdater(
   elements: PiEstimateStatsElements,
   getEstimate: () => number,
-  options: {
-    /** Maximum value for progress bar (0-100%) */
-    maxProgress?: number
-    /** Function to get current progress value */
-    getProgressValue?: () => number
-    /** Threshold for "improving" error class */
-    improvingThreshold?: number
-  } = {}
+  options: PiEstimateOptions = {}
 ): () => void {
-  const { maxProgress = 100, getProgressValue, improvingThreshold = 0.01 } = options
+  const {
+    maxProgress = 100,
+    getProgressValue,
+    improvingThreshold = 0.01,
+    decimals = 6,
+    formatter,
+    showErrorPrefix = true,
+  } = options
+
+  const formatValue = formatter ?? ((v: number) => v.toFixed(decimals))
 
   return function updatePiEstimate(): void {
     const pi = getEstimate()
-    elements.estimate.textContent = fmt(pi)
+    elements.estimate.textContent = formatValue(pi)
 
     if (elements.error) {
       const error = Math.abs(pi - Math.PI)
-      elements.error.textContent = `Error: ${fmt(error)}`
+      const errorText = showErrorPrefix ? `Error: ${fmt(error)}` : fmt(error)
+      elements.error.textContent = errorText
       elements.error.className =
         'stat-error ' + (error < improvingThreshold ? 'improving' : 'neutral')
     }
@@ -144,4 +165,94 @@ export function formatSeriesTerm(
   const denominator = 2 * n + 1
   const value = Math.abs(term)
   return `${sign}1/${denominator} = ${sign}${value.toFixed(decimals)}`
+}
+
+// ─── Stats Updater Builder ────────────────────────────────────────────────────
+
+/**
+ * Builder for creating stats updaters with a fluent API.
+ * Reduces boilerplate when multiple stats need updating.
+ *
+ * @example
+ * ```ts
+ * const updateStats = createStatsUpdater()
+ *   .piEstimate(elements.estimate, () => estimatePi(state.inside, state.total))
+ *   .counter(elements.total, () => state.total)
+ *   .error(elements.error, () => Math.abs(estimate - Math.PI), { threshold: 0.01 })
+ *   .progress(elements.progress, () => state.total, MAX_DOTS)
+ *   .build()
+ * ```
+ */
+export class StatsUpdaterBuilder {
+  private updaters: (() => void)[] = []
+
+  /** Add a π estimate updater */
+  piEstimate(
+    element: HTMLElement,
+    getEstimate: () => number,
+    options?: PiEstimateOptions
+  ): this {
+    const updater = createPiEstimateUpdater({ estimate: element }, getEstimate, options)
+    this.updaters.push(updater)
+    return this
+  }
+
+  /** Add a counter updater */
+  counter(
+    element: HTMLElement,
+    getValue: () => number,
+    formatter?: (n: number) => string
+  ): this {
+    const updater = createCounterUpdater(element, getValue, formatter)
+    this.updaters.push(updater)
+    return this
+  }
+
+  /** Add an error display updater */
+  error(
+    element: HTMLElement,
+    getError: () => number,
+    options?: { threshold?: number; decimals?: number }
+  ): this {
+    const { threshold = 0.01, decimals = 6 } = options ?? {}
+    const updater = () => {
+      const error = getError()
+      element.textContent = error.toFixed(decimals)
+      element.className = 'stat-error ' + (error < threshold ? 'improving' : 'neutral')
+    }
+    this.updaters.push(updater)
+    return this
+  }
+
+  /** Add a progress bar updater */
+  progress(
+    element: HTMLElement,
+    getCurrent: () => number,
+    max: number
+  ): this {
+    const updater = () => {
+      const pct = Math.min((getCurrent() / max) * 100, 100)
+      element.style.width = `${pct}%`
+    }
+    this.updaters.push(updater)
+    return this
+  }
+
+  /** Add a custom updater function */
+  custom(updater: () => void): this {
+    this.updaters.push(updater)
+    return this
+  }
+
+  /** Build the combined updater function */
+  build(): () => void {
+    return combineUpdaters(...this.updaters)
+  }
+}
+
+/**
+ * Creates a new stats updater builder.
+ */
+export function createStatsUpdater(): StatsUpdaterBuilder {
+  return new StatsUpdaterBuilder()
 }

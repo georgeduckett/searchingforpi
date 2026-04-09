@@ -4,6 +4,7 @@
 
 import { fmt } from '../../utils'
 import type { MethodPageContext } from '../base/page/types'
+import { createStatsUpdater as buildStatsUpdater } from '../base/statsHelpers'
 import { State, MAX_TERMS, baselTerm, estimatePi } from './types'
 import { draw } from './rendering'
 
@@ -25,16 +26,18 @@ export function createStatsUpdater(
   elements: StatsElements,
   state: State
 ): () => void {
-  return function updateStats(): void {
-    const piEstimate = estimatePi(state.sum)
-    const error = Math.abs(piEstimate - Math.PI)
-
-    elements.estimate.textContent = fmt(piEstimate)
-    elements.terms.textContent = state.terms.toLocaleString()
-    elements.sum.textContent = fmt(state.sum)
-    elements.error.textContent = `Error: ${fmt(error)}`
-    elements.error.className = 'stat-error ' + (error < 0.1 ? 'improving' : 'neutral')
-  }
+  return buildStatsUpdater()
+    .piEstimate(elements.estimate, () => estimatePi(state.sum), {
+      improvingThreshold: 0.1,
+    })
+    .counter(elements.terms, () => state.terms)
+    .custom(() => {
+      elements.sum.textContent = fmt(state.sum)
+      const error = Math.abs(estimatePi(state.sum) - Math.PI)
+      elements.error.textContent = `Error: ${fmt(error)}`
+      elements.error.className = 'stat-error ' + (error < 0.1 ? 'improving' : 'neutral')
+    })
+    .build()
 }
 
 // ─── Controller Actions ────────────────────────────────────────────────────────

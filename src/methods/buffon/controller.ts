@@ -4,6 +4,7 @@
 
 import type { MethodPageContext } from '../base/page/types'
 import { createFrameAnimation, createEasedAnimation, Easing, cancelAnimations } from '../base/page'
+import { createStatsUpdater as buildStatsUpdater } from '../base/statsHelpers'
 import { State, Needle, CANVAS_W, CANVAS_H, NEEDLES_PER_TICK, MAX_NEEDLES } from './types'
 import { estimatePi, doesCross, generateRandomNeedle } from './physics'
 import { drawBackground, drawNeedle, drawScene } from './rendering'
@@ -27,17 +28,28 @@ export function createStatsUpdater(
   elements: StatsElements,
   state: State
 ): () => void {
-  return function updateStats(): void {
-    const pi = estimatePi(state.crosses, state.total)
-    const err = state.total === 0 ? null : Math.abs(pi - Math.PI)
-
-    elements.estimate.textContent = state.total === 0 ? '—' : pi.toFixed(6)
-    elements.total.textContent = state.total.toLocaleString()
-    elements.crosses.textContent = state.crosses.toLocaleString()
-    elements.error.textContent = err === null ? '—' : err.toFixed(6)
-    elements.error.className = 'stat-error ' + (err !== null && err < 0.05 ? 'improving' : 'neutral')
-    elements.progress.style.width = `${Math.min((state.total / MAX_NEEDLES) * 100, 100)}%`
-  }
+  return buildStatsUpdater()
+    .custom(() => {
+      // Handle empty state display
+      if (state.total === 0) {
+        elements.estimate.textContent = '—'
+        elements.error.textContent = '—'
+        elements.progress.style.width = '0%'
+        return
+      }
+    })
+    .piEstimate(elements.estimate, () => estimatePi(state.crosses, state.total), {
+      improvingThreshold: 0.05,
+      decimals: 6,
+    })
+    .counter(elements.total, () => state.total)
+    .counter(elements.crosses, () => state.crosses)
+    .error(elements.error, () => Math.abs(estimatePi(state.crosses, state.total) - Math.PI), {
+      threshold: 0.05,
+      decimals: 6,
+    })
+    .progress(elements.progress, () => state.total, MAX_NEEDLES)
+    .build()
 }
 
 // ─── Controller Factory ────────────────────────────────────────────────────────
