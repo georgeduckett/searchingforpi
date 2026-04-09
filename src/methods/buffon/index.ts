@@ -1,11 +1,10 @@
-// ─── Buffon's Needle Module ─────────────────────────────────────────────────
-// Barrel export for the Buffon's needle method.
+// ─── Buffon's Needle Method Barrel Export ──────────────────────────────────────
+// Re-exports all buffon method components.
 
-// Export page factory (main entry point)
-export { createBuffonPage } from './page'
-
-// Export preview renderer
-export { drawPreview } from './preview'
-
-// Export types for external use
 export type { State, Needle } from './types'
+export { createInitialState, NEEDLE_LENGTH, LINE_SPACING, CANVAS_W, CANVAS_H } from './types'
+export { createBuffonController, type StatsElements } from './controller'
+export { createBuffonPage } from './page'
+export { drawPreview } from './preview'
+export { drawBackground, drawNeedle } from './rendering'
+export { estimatePi, doesCross, generateRandomNeedle, type NeedleParams } from './physics'

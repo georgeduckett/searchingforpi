@@ -1,11 +1,8 @@
-// ─── Draw Circle Module ──────────────────────────────────────────────────────
-// Barrel export for the draw circle method.
+// ─── Draw Circle Method Barrel Export ──────────────────────────────────────────
+// Re-exports all drawCircle method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createDrawCircleController, type StatsElements } from './controller'
 export { createDrawCirclePage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Point } from './types'
+export { draw } from './rendering'

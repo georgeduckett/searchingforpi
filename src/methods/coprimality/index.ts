@@ -1,11 +1,8 @@
-// ─── Coprimality Module ──────────────────────────────────────────────────────
-// Barrel export for the coprimality method.
+// ─── Coprimality Method Barrel Export ──────────────────────────────────────────
+// Re-exports all coprimality method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createCoprimalityController, type StatsElements } from './controller'
 export { createCoprimalityPage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Pair } from './types'
+export { draw } from './rendering'

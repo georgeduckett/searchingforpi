@@ -1,41 +1,13 @@
 // ─── Monte Carlo Controller ───────────────────────────────────────────────────
-// Animation control logic for the Monte Carlo method.
-// Extracted from page.ts for better separation of concerns.
+// Main controller factory for the Monte Carlo method.
+// Wires up buttons and manages the animation lifecycle.
 
 import type { MethodPageContext } from '../base/page/types'
 import { createFrameController, type AnimationController } from '../base/controller'
-import { createStatsUpdater as buildStatsUpdater } from '../base/statsHelpers'
 import { State, DOTS_PER_TICK, MAX_DOTS } from './types'
-import { estimatePi, generatePoint } from './sampling'
+import { generatePoint } from './sampling'
 import { drawBackground, drawPoint } from './rendering'
-
-// ─── Stats Management ─────────────────────────────────────────────────────────
-
-/**
- * Stats element references for Monte Carlo method.
- */
-export interface StatsElements {
-  estimate: HTMLElement
-  total: HTMLElement
-  error: HTMLElement
-  progress: HTMLElement
-}
-
-/**
- * Creates a stats updater function for Monte Carlo.
- */
-export function createStatsUpdater(elements: StatsElements, state: State): () => void {
-  return buildStatsUpdater()
-    .piEstimate(elements.estimate, () => estimatePi(state.inside, state.total), {
-      improvingThreshold: 0.01,
-    })
-    .counter(elements.total, () => state.total)
-    .error(elements.error, () => Math.abs(estimatePi(state.inside, state.total) - Math.PI), {
-      threshold: 0.01,
-    })
-    .progress(elements.progress, () => state.total, MAX_DOTS)
-    .build()
-}
+import { createStatsUpdater, type StatsElements } from './stats'
 
 // ─── Animation Logic ──────────────────────────────────────────────────────────
 
@@ -116,3 +88,6 @@ export function createMonteCarloController(
 
   return controller
 }
+
+// Re-export types for backward compatibility
+export type { StatsElements } from './stats'

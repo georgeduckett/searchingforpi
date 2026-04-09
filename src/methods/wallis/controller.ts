@@ -1,41 +1,12 @@
 // ─── Wallis Product Controller ────────────────────────────────────────────────
-// Animation control logic for the Wallis product method.
-// Extracted from page.ts for better separation of concerns.
+// Main controller factory for the Wallis product method.
+// Wires up buttons and manages the animation lifecycle.
 
-import { fmt } from '../../utils'
 import type { MethodPageContext } from '../base/page/types'
-import { State, MAX_FACTORS, getFactor, estimatePi } from './types'
+import { State, MAX_FACTORS } from './types'
+import { getFactor } from './math'
 import { draw } from './rendering'
-
-// ─── Stats Element References ──────────────────────────────────────────────────
-
-export interface StatsElements {
-  estimate: HTMLElement
-  factors: HTMLElement
-  product: HTMLElement
-  error: HTMLElement
-}
-
-// ─── Stats Management ──────────────────────────────────────────────────────────
-
-/**
- * Creates a stats updater function for Wallis method.
- */
-export function createStatsUpdater(
-  elements: StatsElements,
-  state: State
-): () => void {
-  return function updateStats(): void {
-    const piEstimate = estimatePi(state.product)
-    const error = Math.abs(piEstimate - Math.PI)
-
-    elements.estimate.textContent = fmt(piEstimate)
-    elements.factors.textContent = state.factors.toLocaleString()
-    elements.product.textContent = fmt(state.product)
-    elements.error.textContent = `Error: ${fmt(error)}`
-    elements.error.className = 'stat-error ' + (error < 0.1 ? 'improving' : 'neutral')
-  }
-}
+import { createStatsUpdater, type StatsElements } from './stats'
 
 // ─── Controller Actions ────────────────────────────────────────────────────────
 
@@ -178,3 +149,6 @@ export function createWallisController(
     },
   }
 }
+
+// Re-export types for backward compatibility
+export type { StatsElements } from './stats'

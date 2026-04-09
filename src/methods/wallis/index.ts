@@ -1,11 +1,27 @@
-// ─── Wallis Product Module ────────────────────────────────────────────────────
-// Barrel export for the Wallis product method.
+// ─── Wallis Product Method Barrel Export ───────────────────────────────────────
+// Re-exports all wallis method components.
 
-// Export page factory (main entry point)
+// Constants
+export { MAX_FACTORS } from './constants'
+
+// State
+export type { State } from './state'
+export { createInitialState } from './state'
+
+// Mathematics
+export { getFactor, estimatePi, getTarget } from './math'
+
+// Controller
+export { createWallisController, addFactor, start, stop, reset, type StatsElements } from './controller'
+
+// Page factory
 export { createWallisPage } from './page'
 
-// Export preview renderer
+// Preview
 export { drawPreview } from './preview'
 
-// Export types for external use
-export type { State } from './types'
+// Rendering
+export { draw } from './rendering'
+
+// Stats
+export { createStatsUpdater } from './stats'

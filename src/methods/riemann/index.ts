@@ -1,11 +1,27 @@
-// ─── Riemann Module ──────────────────────────────────────────────────────────
-// Barrel export for the Riemann integral method.
+// ─── Riemann Integral Method Barrel Export ─────────────────────────────────────
+// Re-exports all riemann method components.
 
-// Export page factory (main entry point)
+// Constants
+export { MAX_RECTS } from './constants'
+
+// State
+export type { State } from './state'
+export { createInitialState } from './state'
+
+// Mathematics
+export { f, computeSum } from './math'
+
+// Controller
+export { createRiemannController, addRects, start, stop, reset, type StatsElements } from './controller'
+
+// Page factory
 export { createRiemannPage } from './page'
 
-// Export preview renderer
+// Preview
 export { drawPreview } from './preview'
 
-// Export types for external use
-export type { State } from './types'
+// Rendering
+export { draw } from './rendering'
+
+// Stats
+export { createStatsUpdater } from './stats'

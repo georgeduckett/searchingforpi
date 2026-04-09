@@ -1,11 +1,8 @@
-// ─── Circle Packing Module ───────────────────────────────────────────────────
-// Barrel export for the circle packing method.
+// ─── Circle Packing Method Barrel Export ───────────────────────────────────────
+// Re-exports all circlePacking method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createCirclePackingController, type StatsElements } from './controller'
 export { createCirclePackingPage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Circle } from './types'
+export { draw } from './rendering'

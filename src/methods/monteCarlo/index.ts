@@ -1,11 +1,35 @@
-// ─── Monte Carlo Module ──────────────────────────────────────────────────────
-// Barrel export for the Monte Carlo method.
+// ─── Monte Carlo Method Barrel Export ─────────────────────────────────────────
+// Re-exports all monte carlo method components.
 
-// Export page factory (main entry point)
+// Constants
+export {
+  DOTS_PER_TICK,
+  MAX_DOTS,
+  DOT_RADIUS,
+  DOT_ALPHA,
+  PREVIEW_DOT_RADIUS,
+  CIRCLE_RADIUS_FACTOR,
+  CIRCLE_RADIUS,
+} from './constants'
+
+// State
+export type { State } from './state'
+export { createInitialState } from './state'
+
+// Controller
+export { createMonteCarloController, createUpdateFunction, addDots, type StatsElements } from './controller'
+
+// Page factory
 export { createMonteCarloPage } from './page'
 
-// Export preview renderer
+// Preview
 export { drawPreview } from './preview'
 
-// Export types for external use
-export type { State } from './types'
+// Rendering
+export { drawBackground, drawPoint } from './rendering'
+
+// Sampling
+export { estimatePi, generatePoint } from './sampling'
+
+// Stats
+export { createStatsUpdater } from './stats'

@@ -1,11 +1,8 @@
-// ─── Gas Molecules Module ────────────────────────────────────────────────────
-// Barrel export for the gas molecules method.
+// ─── Gas Molecules Method Barrel Export ─────────────────────────────────────────
+// Re-exports all gasMolecules method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createGasMoleculesController, type StatsElements } from './controller'
 export { createGasMoleculesPage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Particle } from './types'
+export { draw } from './rendering'

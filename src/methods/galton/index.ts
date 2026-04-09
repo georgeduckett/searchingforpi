@@ -1,11 +1,8 @@
-// ─── Galton Board Module ────────────────────────────────────────────────────
-// Barrel export for the Galton board method.
+// ─── Galton Board Method Barrel Export ─────────────────────────────────────────
+// Re-exports all galton method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createGaltonController, type StatsElements } from './controller'
 export { createGaltonPage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Ball } from './types'
+export { draw } from './rendering'

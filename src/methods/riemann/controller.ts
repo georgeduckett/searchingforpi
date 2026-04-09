@@ -1,39 +1,11 @@
 // ─── Riemann Integral Controller ──────────────────────────────────────────────
-// Animation control logic for the Riemann integral method.
-// Extracted from page.ts for better separation of concerns.
+// Main controller factory for the Riemann integral method.
+// Wires up buttons and manages the animation lifecycle.
 
-import { fmt } from '../../utils'
 import type { MethodPageContext } from '../base/page/types'
-import { State, MAX_RECTS, computeSum } from './types'
+import { State, MAX_RECTS } from './types'
 import { draw } from './rendering'
-
-// ─── Stats Element References ──────────────────────────────────────────────────
-
-export interface StatsElements {
-  estimate: HTMLElement
-  rects: HTMLElement
-  error: HTMLElement
-}
-
-// ─── Stats Management ──────────────────────────────────────────────────────────
-
-/**
- * Creates a stats updater function for Riemann method.
- */
-export function createStatsUpdater(
-  elements: StatsElements,
-  state: State
-): () => void {
-  return function updateStats(): void {
-    const estimate = computeSum(state.rects)
-    const error = Math.abs(estimate - Math.PI)
-
-    elements.estimate.textContent = fmt(estimate)
-    elements.rects.textContent = state.rects.toLocaleString()
-    elements.error.textContent = `Error: ${fmt(error)}`
-    elements.error.className = 'stat-error ' + (error < 0.01 ? 'improving' : 'neutral')
-  }
-}
+import { createStatsUpdater, type StatsElements } from './stats'
 
 // ─── Controller Actions ────────────────────────────────────────────────────────
 
@@ -176,3 +148,6 @@ export function createRiemannController(
     },
   }
 }
+
+// Re-export types for backward compatibility
+export type { StatsElements } from './stats'

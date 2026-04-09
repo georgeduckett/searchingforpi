@@ -1,11 +1,8 @@
-// ─── Coin Toss Module ────────────────────────────────────────────────────────
-// Barrel export for the coin toss method.
+// ─── Coin Toss Method Barrel Export ────────────────────────────────────────────
+// Re-exports all coinToss method components.
 
-// Export page factory (main entry point)
+export * from './types'
+export { createCoinTossController, type StatsElements } from './controller'
 export { createCoinTossPage } from './page'
-
-// Export preview renderer
 export { drawPreview } from './preview'
-
-// Export types for external use
-export type { State, Sequence } from './types'
+export { draw } from './rendering'
