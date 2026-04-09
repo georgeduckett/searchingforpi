@@ -12,7 +12,7 @@ export { createInitialState } from './state'
 export { getFactor, estimatePi, getTarget } from './math'
 
 // Controller
-export { createWallisController, addFactor, start, stop, reset, type StatsElements } from './controller'
+export { createWallisController, addFactor, type StatsElements } from './controller'
 
 // Page factory
 export { createWallisPage } from './page'

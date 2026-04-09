@@ -12,7 +12,7 @@ export { createInitialState } from './state'
 export { f, computeSum } from './math'
 
 // Controller
-export { createRiemannController, addRects, start, stop, reset, type StatsElements } from './controller'
+export { createRiemannController, addRects, type StatsElements } from './controller'
 
 // Page factory
 export { createRiemannPage } from './page'
