@@ -48,8 +48,8 @@ export function createMethodPageFactory<S>(
     title,
     subtitle,
     index,
-    canvasWidth = 560,
-    canvasHeight = 560,
+    canvasWidth = 480,
+    canvasHeight = 480,
     controls = '<button class="btn primary" id="btn-start">Start</button><button class="btn" id="btn-step">Step</button><button class="btn" id="btn-reset" disabled>Reset</button>',
     statsPanel,
   } = options

@@ -308,16 +308,29 @@ body {
 .viz-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 32px;
+  gap: 24px;
   align-items: start;
 }
 
+/* Responsive canvas wrapper - fits within viewport */
 .canvas-wrapper {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
+  /* Limit canvas height to fit viewport */
+  max-height: calc(100vh - 220px);
+  max-width: 100%;
+}
+
+/* Square canvas maintains aspect ratio while respecting max-height */
+.canvas-wrapper canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 220px);
+  object-fit: contain;
 }
 
 /* Bouncing boxes canvas - responsive sizing */
