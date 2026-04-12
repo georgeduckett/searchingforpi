@@ -67,6 +67,25 @@ body.theme-light .btn {
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -76,6 +95,29 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Skip Link for Accessibility ───────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--amber);
+  color: var(--bg-deep);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 16px;
+  outline: 2px solid var(--amber-bright);
+  outline-offset: 2px;
 }
 
 /* ─── Layout ────────────────────────────────────────────────────────────────── */
@@ -137,6 +179,8 @@ body {
   padding: 16px 0;
   flex: 1;
   overflow-y: auto;
+  /* Enable smooth scrolling for long nav lists */
+  scroll-behavior: smooth;
 }
 
 .nav-link {
@@ -157,10 +201,24 @@ body {
   border-left-color: var(--border-bright);
 }
 
+.nav-link:active {
+  background: var(--bg-deep);
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
+  background: var(--bg-raised);
+}
+
 .nav-link.active {
   color: var(--amber-bright);
   background: var(--amber-glow);
   border-left-color: var(--amber);
+}
+
+.nav-link.active:focus-visible {
+  outline-color: var(--amber-bright);
 }
 
 .nav-label {
@@ -370,6 +428,15 @@ canvas {
   border-color: var(--text-muted);
 }
 
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
 .btn.primary {
   background: var(--amber-glow);
   border-color: var(--amber-dim);
@@ -382,9 +449,17 @@ canvas {
   color: var(--amber-bright);
 }
 
+.btn.primary:active {
+  background: rgba(200, 146, 42, 0.35);
+}
+
 .btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+.btn:disabled:active {
+  transform: none;
 }
 
 /* ─── Select ────────────────────────────────────────────────────────────────── */
@@ -406,6 +481,11 @@ canvas {
   background: var(--bg-raised);
   color: var(--text-primary);
   border-color: var(--text-muted);
+}
+
+.control-select:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
 .control-select:disabled {
@@ -505,6 +585,17 @@ canvas {
   background: var(--bg-raised);
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.method-card:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.method-card:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  border-color: var(--amber-dim);
 }
 
 .method-card-preview {
@@ -681,6 +772,15 @@ canvas {
     color: var(--text-primary);
   }
 
+  .mobile-nav-btn:active:not(:disabled) {
+    background: var(--bg-deep);
+  }
+
+  .mobile-nav-btn:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
   .mobile-nav-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -710,6 +810,15 @@ canvas {
 
   #hamburger:hover {
     background: var(--bg-raised);
+  }
+
+  #hamburger:active {
+    background: var(--bg-deep);
+  }
+
+  #hamburger:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
   }
 
   #hamburger span {
@@ -815,6 +924,13 @@ canvas {
 
   .method-card {
     flex-direction: column;
+    /* Add active state feedback for touch devices */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .method-card:active {
+    background: var(--bg-raised);
+    border-color: var(--amber-dim);
   }
 
   .method-card-preview {
