@@ -15,6 +15,9 @@ export interface ArchimedesButtons {
 
 // ─── Animation Transition ──────────────────────────────────────────────────────
 
+/** Flag to track if we're in an auto-play sequence */
+let isPlayingSequence = false
+
 /**
  * Creates the animation transition function.
  */
@@ -31,10 +34,13 @@ export function createAnimateTransition(
       state.sides = state.targetSides
       updateStats()
       draw(ctx2d, state.sides, state.lower, state.upper)
-      buttons.btnStep.disabled = false
-      buttons.btnReset.disabled = false
-      buttons.btnPlay.disabled = state.iteration >= MAX_ITERATIONS
-      buttons.selectIter.disabled = false
+      // Only re-enable buttons if we're not in a play sequence
+      if (!isPlayingSequence) {
+        buttons.btnStep.disabled = false
+        buttons.btnReset.disabled = false
+        buttons.btnPlay.disabled = state.iteration >= MAX_ITERATIONS
+        buttons.selectIter.disabled = false
+      }
       state.animationId = null
       return
     }
@@ -105,10 +111,19 @@ export function step(
  */
 export function play(
   state: State,
-  buttons: Pick<ArchimedesButtons, 'btnPlay'>,
+  buttons: Pick<ArchimedesButtons, 'btnPlay' | 'btnStep' | 'btnReset' | 'selectIter'>,
   stepToFn: (sides: number) => void
 ): void {
   if (state.animating) return
+
+  // Mark that we're in a play sequence so buttons stay disabled
+  isPlayingSequence = true
+
+  // Disable all buttons for the entire play sequence
+  buttons.btnPlay.disabled = true
+  buttons.btnStep.disabled = true
+  buttons.btnReset.disabled = true
+  buttons.selectIter.disabled = true
 
   const playSequence = () => {
     const nextSides = state.sides * 2
@@ -116,12 +131,22 @@ export function play(
       nextSides > INITIAL_SIDES * Math.pow(2, MAX_ITERATIONS) ||
       state.iteration >= MAX_ITERATIONS
     ) {
-      buttons.btnPlay.disabled = true
+      // Play sequence complete - re-enable step and reset buttons, keep play disabled at max
+      isPlayingSequence = false
+      buttons.btnStep.disabled = false
+      buttons.btnReset.disabled = false
+      buttons.selectIter.disabled = false
       return
     }
     stepToFn(nextSides)
     setTimeout(() => {
-      if (!state.animating && state.iteration < MAX_ITERATIONS) {
+      if (state.iteration >= MAX_ITERATIONS) {
+        // Last iteration just completed - re-enable buttons
+        isPlayingSequence = false
+        buttons.btnStep.disabled = false
+        buttons.btnReset.disabled = false
+        buttons.selectIter.disabled = false
+      } else if (!state.animating) {
         playSequence()
       } else if (state.animating) {
         setTimeout(playSequence, 100)
