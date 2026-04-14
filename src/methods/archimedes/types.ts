@@ -3,7 +3,7 @@
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 export const MAX_ITERATIONS = 9
-export const INITIAL_SIDES = 6
+export const INITIAL_SIDES = 3
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface State {

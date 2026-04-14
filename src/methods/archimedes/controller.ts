@@ -61,8 +61,7 @@ export function createArchimedesController(
   btnPlay.addEventListener('click', () => play(state, buttons, boundStepTo))
   btnReset.addEventListener('click', () => reset(state, ctx2d, buttons, updateStats))
   selectIter.addEventListener('change', e => {
-    const iter = parseInt((e.target as HTMLSelectElement).value)
-    const sides = INITIAL_SIDES * Math.pow(2, iter)
+    const sides = parseInt((e.target as HTMLSelectElement).value)
     boundStepTo(sides)
   })
 

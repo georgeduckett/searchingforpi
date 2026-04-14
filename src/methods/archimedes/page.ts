@@ -23,19 +23,24 @@ export const createArchimedesPage = createMethodPageFactory<State>(
     canvasHeight: CANVAS_SIZE,
     controls: `
       <button class="btn" id="btn-play">Auto Play</button>
-      <button class="btn primary" id="btn-step">Double Sides</button>
+      <button class="btn primary" id="btn-step">Increase Sides</button>
       <button class="btn" id="btn-reset">Reset</button>
       <select id="select-iter" class="control-select">
-        <option value="0">6 sides</option>
-        <option value="1">12 sides</option>
-        <option value="2">24 sides</option>
-        <option value="3">48 sides</option>
-        <option value="4">96 sides</option>
-        <option value="5">192 sides</option>
-        <option value="6">384 sides</option>
-        <option value="7">768 sides</option>
-        <option value="8">1536 sides</option>
-        <option value="9">3072 sides</option>
+        <option value="3" selected>3 sides</option>
+        <option value="4">4 sides</option>
+        <option value="5">5 sides</option>
+        <option value="6">6 sides</option>
+        <option value="8">8 sides</option>
+        <option value="12">12 sides</option>
+        <option value="24">24 sides</option>
+        <option value="36">36 sides</option>
+        <option value="48">48 sides</option>
+        <option value="96">96 sides</option>
+        <option value="192">192 sides</option>
+        <option value="384">384 sides</option>
+        <option value="768">768 sides</option>
+        <option value="1536">1536 sides</option>
+        <option value="3072">3072 sides</option>
       </select>
     `,
     statsPanel: `
