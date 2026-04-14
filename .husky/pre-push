@@ -1,0 +1,5 @@
+# Run build before pushing to catch any build errors
+echo "Running build to verify..."
+npm run build || exit 1
+
+echo "Build successful!"
