@@ -22,8 +22,8 @@ export const createArchimedesPage = createMethodPageFactory<State>(
     canvasWidth: CANVAS_SIZE,
     canvasHeight: CANVAS_SIZE,
     controls: `
-      <button class="btn primary" id="btn-step">Double Sides</button>
       <button class="btn" id="btn-play">Auto Play</button>
+      <button class="btn primary" id="btn-step">Double Sides</button>
       <button class="btn" id="btn-reset">Reset</button>
       <select id="select-iter" class="control-select">
         <option value="0">6 sides</option>
